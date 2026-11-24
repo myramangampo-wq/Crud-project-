@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloomPhone — Cellphone Inventory & Store CRUD System</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-rose-50/90 via-slate-50 to-pink-50/80 min-h-screen text-slate-800 antialiased selection:bg-rose-200 selection:text-rose-900">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-rose-100 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-600 to-pink-400 flex items-center justify-center text-white shadow-md shadow-rose-200 shrink-0">
+                    <i data-lucide="smartphone" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg sm:text-xl tracking-tight text-slate-900 leading-none">
+                        Bloom<span class="text-rose-600">Phone</span>
+                    </h1>
+                    <p class="text-[11px] font-medium text-slate-400 mt-0.5 hidden sm:block">Mobile Store & Cellphone CRUD System</p>
+                </div>
+            </div>
+
+            <!-- Global Action Buttons -->
+            <div class="flex items-center gap-2 sm:gap-2.5">
+                <!-- Export Dropdown -->
+                <div class="relative" id="exportDropdownWrapper">
+                    <button id="exportMenuBtn" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 bg-white hover:bg-rose-50/80 hover:text-rose-600 border border-slate-200/80 transition-all shadow-2xs active:scale-95">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Export</span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 opacity-60"></i>
+                    </button>
+                    <div id="exportMenu" class="hidden absolute right-0 mt-2 w-44 rounded-2xl bg-white shadow-xl shadow-rose-900/5 border border-rose-100 py-1.5 z-40">
+                        <button type="button" onclick="exportData('csv')" class="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-rose-50 hover:text-rose-600 flex items-center gap-2.5 transition-colors">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-rose-500"></i>
+                            Export CSV
+                        </button>
+                        <button type="button" onclick="exportData('json')" class="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-rose-50 hover:text-rose-600 flex items-center gap-2.5 transition-colors">
+                            <i data-lucide="file-code" class="w-4 h-4 text-pink-500"></i>
+                            Export JSON
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reset Sample Data Button -->
+                <button type="button" onclick="promptResetData()" title="Reset 168 Sample Cellphones (8 per Brand)" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 bg-white hover:bg-amber-50 hover:text-amber-700 border border-slate-200/80 transition-all shadow-2xs active:scale-95">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Reset Demo</span>
+                </button>
+
+                <!-- Primary Add Cellphone Button -->
+                <button type="button" onclick="openPhoneModal()" class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-700 hover:to-pink-600 shadow-md shadow-rose-200 transition-all active:scale-95">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Add Cellphone</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+
+        <!-- Dashboard Summary KPI Cards -->
+        <section aria-label="Cellphone Inventory Summary" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+            <!-- Total Units in Stock -->
+            <div class="bg-white/95 backdrop-blur-xs rounded-2xl p-4 sm:p-5 border border-rose-100 shadow-sm hover:shadow-md hover:border-rose-200 transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs sm:text-sm font-medium text-slate-500">Total Units in Stock</span>
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                        <i data-lucide="smartphone" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between gap-2">
+                    <p id="statTotalUnits" class="font-display text-2xl sm:text-3xl font-bold text-slate-900">0</p>
+                    <span id="statModelCount" class="text-[11px] font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">0 models</span>
+                </div>
+            </div>
+
+            <!-- Total Inventory Value (PHP) -->
+            <div class="bg-white/95 backdrop-blur-xs rounded-2xl p-4 sm:p-5 border border-rose-100 shadow-sm hover:shadow-md hover:border-pink-200 transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs sm:text-sm font-medium text-slate-500">Inventory Value</span>
+                    <div class="w-9 h-9 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center font-bold text-sm shrink-0">
+                        ₱
+                    </div>
+                </div>
+                <div class="mt-3 flex flex-wrap items-baseline justify-between gap-1.5">
+                    <p id="statTotalValue" class="font-display text-base sm:text-xl lg:text-2xl font-bold text-slate-900 break-words leading-tight">₱0</p>
+                    <span class="text-[11px] font-medium text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full shrink-0">PHP</span>
+                </div>
+            </div>
+
+            <!-- Available Models -->
+            <div class="bg-white/95 backdrop-blur-xs rounded-2xl p-4 sm:p-5 border border-rose-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs sm:text-sm font-medium text-slate-500">Available Models</span>
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between gap-2">
+                    <p id="statAvailableModels" class="font-display text-2xl sm:text-3xl font-bold text-slate-900">0</p>
+                    <span class="text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Ready to sell</span>
+                </div>
+            </div>
+
+            <!-- Low / Out of Stock Alerts -->
+            <div class="bg-white/95 backdrop-blur-xs rounded-2xl p-4 sm:p-5 border border-rose-100 shadow-sm hover:shadow-md hover:border-amber-200 transition-all">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs sm:text-sm font-medium text-slate-500">Low / Out of Stock</span>
+                    <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i data-lucide="alert-circle" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between gap-2">
+                    <p id="statStockAlerts" class="font-display text-2xl sm:text-3xl font-bold text-slate-900">0</p>
+                    <span class="text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Restock alert</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search, Filter & Sort Toolbar -->
+        <section class="bg-white/95 backdrop-blur-xs rounded-2xl p-4 border border-rose-100 shadow-sm space-y-3">
+            <!-- Instant Live Search & Reset -->
+            <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    <input type="text" id="searchInput" placeholder="Search SKU, brand, model, category, color, or specs..." class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                    <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors" title="Clear search">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+                <button type="button" onclick="resetFilters()" class="px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/70 transition-colors shrink-0" title="Reset Search & Filters">
+                    Reset
+                </button>
+                <button type="button" onclick="promptClearAll()" class="p-2.5 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200/80 transition-colors shrink-0" title="Clear All Inventory">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Filter & Sort Controls (2-column grid on mobile so labels never truncate) -->
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+                <!-- Brand Filter -->
+                <div class="relative w-full sm:w-auto sm:min-w-[165px]">
+                    <select id="brandFilter" class="w-full appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all cursor-pointer">
+                        <option value="All">All Brands</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+
+                <!-- Category / Tier Filter -->
+                <div class="relative w-full sm:w-auto sm:min-w-[165px]">
+                    <select id="tierFilter" class="w-full appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all cursor-pointer">
+                        <option value="All">All Categories</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+
+                <!-- Condition Filter -->
+                <div class="relative w-full sm:w-auto sm:min-w-[175px]">
+                    <select id="conditionFilter" class="w-full appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all cursor-pointer">
+                        <option value="All">All Conditions</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="relative w-full sm:w-auto sm:min-w-[155px]">
+                    <select id="statusFilter" class="w-full appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all cursor-pointer">
+                        <option value="All">All Statuses</option>
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+
+                <!-- Sort Selector -->
+                <div class="relative col-span-2 sm:col-span-1 w-full sm:w-auto sm:min-w-[175px]">
+                    <select id="sortSelect" class="w-full appearance-none pl-3 pr-8 py-2.5 rounded-xl bg-slate-50/80 border border-slate-200/80 text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all cursor-pointer">
+                        <option value="newest">Sort: Newest Updated</option>
+                        <option value="model-asc">Sort: Model (A–Z)</option>
+                        <option value="price-asc">Sort: Price Low to High</option>
+                        <option value="price-desc">Sort: Price High to Low</option>
+                        <option value="stock-asc">Sort: Stock Low to High</option>
+                    </select>
+                    <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cellphone Catalog Table / Mobile Cards -->
+        <section class="bg-white/95 backdrop-blur-xs rounded-2xl border border-rose-100 shadow-sm overflow-hidden">
+            <!-- Meta Bar -->
+            <div class="px-5 py-3.5 border-b border-rose-100/80 bg-rose-50/40 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <h2 class="text-xs sm:text-sm font-semibold text-slate-700">
+                        Showing <span id="visibleCount" class="text-rose-600 font-bold">0</span> of <span id="totalCountMeta" class="font-bold text-slate-900">0</span> cellphone models
+                    </h2>
+                </div>
+                <span class="text-[11px] text-slate-400">Every unit includes a <strong class="text-slate-600">Category</strong> tag • Use <strong class="text-slate-600">- / +</strong> to adjust stock</span>
+            </div>
+
+            <!-- Desktop Table -->
+            <div class="hidden lg:block overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-50/60">
+                            <th class="py-3.5 px-4">SKU</th>
+                            <th class="py-3.5 px-4">Brand, Model & Category</th>
+                            <th class="py-3.5 px-4">Variant / Color</th>
+                            <th class="py-3.5 px-4">Condition</th>
+                            <th class="py-3.5 px-4 text-right">Unit Price</th>
+                            <th class="py-3.5 px-4 text-center">Stock Qty</th>
+                            <th class="py-3.5 px-4">Status</th>
+                            <th class="py-3.5 px-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="desktopTableBody" class="divide-y divide-slate-100 text-sm">
+                        <!-- Rendered dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile & Tablet Card Grid -->
+            <div id="mobileCardsContainer" class="lg:hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:gap-4 md:p-4">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Pagination Footer -->
+            <div id="paginationBar" class="hidden px-5 py-3.5 border-t border-rose-100/80 bg-slate-50/60 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+                <span id="pageInfoText" class="text-slate-500 font-medium">Page 1 of 1</span>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="prevPageBtn" onclick="changePage(-1)" class="px-3 py-1.5 rounded-xl font-medium text-slate-700 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 disabled:opacity-40 disabled:pointer-events-none transition-colors">
+                        Previous
+                    </button>
+                    <button type="button" id="nextPageBtn" onclick="changePage(1)" class="px-3 py-1.5 rounded-xl font-medium text-slate-700 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 disabled:opacity-40 disabled:pointer-events-none transition-colors">
+                        Next
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden py-16 px-4 text-center">
+                <div class="w-16 h-16 rounded-3xl bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="smartphone" class="w-8 h-8"></i>
+                </div>
+                <h3 class="font-display text-lg font-bold text-slate-800">No cellphones found</h3>
+                <p id="emptyStateDesc" class="text-sm text-slate-500 max-w-sm mx-auto mt-1">
+                    Try clearing your filters or add a new cellphone model to your store inventory.
+                </p>
+                <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+                    <button type="button" onclick="resetFilters()" id="resetFiltersEmptyBtn" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
+                        Reset Filters
+                    </button>
+                    <button type="button" onclick="openPhoneModal()" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-sm shadow-rose-200 transition-colors">
+                        + Add Cellphone
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- View Phone Details Modal -->
+    <div id="viewModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onclick="closeViewModal()"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative w-full max-w-md rounded-3xl bg-white shadow-2xl border border-rose-100 overflow-hidden">
+                    <div class="px-6 py-4 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-rose-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span id="viewSkuBadge" class="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-rose-600 text-white">CP-001</span>
+                            <span id="viewBrandPill" class="text-xs font-semibold text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-lg">Apple</span>
+                        </div>
+                        <button type="button" onclick="closeViewModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-white/80">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div id="viewModalBody" class="p-6 space-y-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                    <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                        <button type="button" onclick="closeViewModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-200/70 transition-colors">Close</button>
+                        <button type="button" id="viewEditTriggerBtn" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 transition-colors flex items-center gap-1.5">
+                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                            Edit Phone
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create / Edit Cellphone Modal -->
+    <div id="phoneModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modalTitle" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onclick="closePhoneModal()"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative w-full max-w-lg rounded-3xl bg-white shadow-2xl shadow-rose-950/15 border border-rose-100 overflow-hidden">
+                    <!-- Modal Header -->
+                    <div class="px-6 py-4 bg-gradient-to-r from-rose-50 to-pink-50/70 border-b border-rose-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div id="modalIconBadge" class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center">
+                                <i data-lucide="smartphone" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 id="modalTitle" class="font-display text-base sm:text-lg font-bold text-slate-900">Add Cellphone</h3>
+                                <p id="modalSubtitle" class="text-xs text-slate-500">Enter handset specifications, category, pricing, and stock count.</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="closePhoneModal()" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-white/80 transition-colors">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Cellphone Form -->
+                    <form id="phoneForm" novalidate class="p-5 sm:p-6 space-y-4">
+                        <input type="hidden" id="phoneId">
+
+                        <!-- Brand & Model Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="fieldBrand" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    Brand <span class="text-rose-500">*</span>
+                                </label>
+                                <select id="fieldBrand" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                                </select>
+                                <p id="errorBrand" class="hidden text-xs text-rose-600 mt-1 font-medium">Brand is required.</p>
+                            </div>
+
+                            <div>
+                                <label for="fieldModel" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    Model Name <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" id="fieldModel" required placeholder="e.g., iPhone 15 Pro Max" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                                <p id="errorModel" class="hidden text-xs text-rose-600 mt-1 font-medium">Enter model name (min 2 chars).</p>
+                            </div>
+                        </div>
+
+                        <!-- Category / Tier & Condition Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="fieldTier" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    Category / Tier <span class="text-rose-500">*</span>
+                                </label>
+                                <select id="fieldTier" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="fieldCondition" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    Condition
+                                </label>
+                                <select id="fieldCondition" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Custom Non-Overlapping RAM / Storage Picker -->
+                        <div class="relative" id="storageDropdownWrapper">
+                            <label for="storageTriggerBtn" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                RAM / Storage Variant
+                            </label>
+                            <input type="hidden" id="fieldStorage" value="8GB / 256GB">
+                            <button type="button" id="storageTriggerBtn" onclick="toggleStorageMenu(event)" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 flex items-center justify-between hover:bg-white focus:outline-none focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                                <span id="storageSelectedLabel" class="font-medium text-slate-800">8GB / 256GB</span>
+                                <i data-lucide="chevron-down" id="storageChevron" class="w-4 h-4 text-slate-400 transition-transform duration-200"></i>
+                            </button>
+
+                            <!-- Custom Floating Menu -->
+                            <div id="storageCustomMenu" class="hidden mt-1.5 w-full rounded-2xl bg-white shadow-xl shadow-rose-950/15 border border-rose-200 p-2 z-50">
+                                <div id="storageOptionsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-48 overflow-y-auto pr-0.5">
+                                    <!-- Populated dynamically -->
+                                </div>
+                                <div class="mt-2 pt-2 border-t border-slate-100">
+                                    <button type="button" onclick="enableCustomStorageMode()" class="w-full px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 flex items-center justify-center gap-1.5 transition-colors">
+                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                        Custom RAM / Storage...
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Custom Storage Free-Text Input -->
+                            <div id="customStorageInputBox" class="hidden mt-2 flex items-center gap-2">
+                                <input type="text" id="customStorageInput" placeholder="e.g., 18GB / 512GB or 64GB" class="flex-1 px-3.5 py-2 rounded-xl bg-rose-50/40 border border-rose-300 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-500">
+                                <button type="button" onclick="disableCustomStorageMode()" class="px-3 py-2 rounded-xl text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200">
+                                    Presets
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Colorway Presets + Free Text -->
+                        <div>
+                            <label for="fieldColor" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                Colorway
+                            </label>
+                            <input type="text" id="fieldColor" placeholder="Type or tap a colorway chip below..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                            <div id="colorwayChipsContainer" class="mt-2 flex flex-wrap gap-1.5">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Price (PHP) & Stock Row -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="fieldPrice" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    Price (₱) <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="number" id="fieldPrice" min="1" step="0.01" placeholder="e.g., 15990" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                                <p id="errorPrice" class="hidden text-xs text-rose-600 mt-1 font-medium">Price must be > 0.</p>
+                            </div>
+
+                            <div>
+                                <label for="fieldStock" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                    Stock Qty <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="number" id="fieldStock" min="0" step="1" value="5" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                                <p id="errorStock" class="hidden text-xs text-rose-600 mt-1 font-medium">Stock must be ≥ 0.</p>
+                            </div>
+                        </div>
+
+                        <!-- Status Selector with Auto-Suggest Hint -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="fieldStatus" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                                    Availability Status
+                                </label>
+                                <span id="statusAutoHint" class="text-[11px] text-rose-600 font-medium">Auto-updates based on stock</span>
+                            </div>
+                            <select id="fieldStatus" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all">
+                            </select>
+                        </div>
+
+                        <!-- Specs / Notes -->
+                        <div>
+                            <label for="fieldNotes" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                Specs & Warranty Notes
+                            </label>
+                            <textarea id="fieldNotes" rows="2" placeholder="e.g., 5000mAh battery, Dual Nano-SIM, NTC Approved, 1-yr store warranty..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-rose-400 focus:ring-3 focus:ring-rose-500/10 transition-all resize-none"></textarea>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                            <button type="button" onclick="closePhoneModal()" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" id="savePhoneBtn" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-700 hover:to-pink-600 shadow-md shadow-rose-200 transition-all active:scale-95">
+                                Save Cellphone
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onclick="closeConfirmModal()"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-rose-100 text-center">
+                    <div id="confirmIconWrapper" class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                    <h3 id="confirmTitle" class="font-display text-lg font-bold text-slate-900">Confirm Action</h3>
+                    <p id="confirmMessage" class="text-sm text-slate-500 mt-1.5">Are you sure you want to proceed?</p>
+                    <div class="mt-6 flex items-center justify-center gap-3">
+                        <button type="button" onclick="closeConfirmModal()" class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button" id="confirmActionBtn" class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-200 transition-colors">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
+
+    <!-- Cellphone CRUD Logic -->
+    <script>
+        const STORAGE_KEY = 'bloomphone_crud_21x8_v1';
+        const PAGE_SIZE = 24;
+
+        // 21 Cellphone Brands
+        const BRAND_OPTIONS = [
+            'Apple', 'Samsung', 'Oppo', 'Xiaomi', 'Redmi', 'POCO', 'Vivo',
+            'Realme', 'Infinix', 'Tecno', 'Huawei', 'Honor', 'Google Pixel',
+            'OnePlus', 'Asus ROG', 'Nothing', 'Sony', 'Motorola', 'Nokia',
+            'Cherry Mobile', 'Other'
+        ];
+
+        // 7 Device Categories / Tiers (Every single model is assigned one of these)
+        const TIER_OPTIONS = [
+            'Flagship',
+            'Mid-Range',
+            'Budget / Entry-Level',
+            'Gaming Phone',
+            'Foldable / Flip',
+            'Camera-Centric',
+            'Rugged / Outdoor'
+        ];
+
+        // 12 RAM / Storage Presets (+ Custom option in modal)
+        const STORAGE_OPTIONS = [
+            '2GB / 32GB',
+            '3GB / 64GB',
+            '4GB / 64GB',
+            '4GB / 128GB',
+            '6GB / 128GB',
+            '8GB / 128GB',
+            '8GB / 256GB',
+            '12GB / 256GB',
+            '12GB / 512GB',
+            '16GB / 512GB',
+            '16GB / 1TB',
+            '24GB / 1TB'
+        ];
+
+        // 7 Condition Categories
+        const CONDITION_OPTIONS = [
+            'Brand New (Sealed)',
+            'Brand New (Open Box)',
+            'Second Hand (Like New / 99%)',
+            'Second Hand (Good / Used)',
+            'Refurbished (Certified)',
+            'Demo / Display Unit',
+            'For Parts / Defective'
+        ];
+
+        // 6 Status Categories
+        const STATUS_OPTIONS = [
+            'Available',
+            'Low Stock',
+            'Out of Stock',
+            'Reserved',
+            'In Transit / Restocking',
+            'Discontinued'
+        ];
+
+        // 8 Colorway Quick-Tap Chips
+        const COLORWAY_PRESETS = [
+            { name: 'Midnight Black', dot: 'bg-slate-900' },
+            { name: 'Starlight White', dot: 'bg-slate-100 border border-slate-300' },
+            { name: 'Rose Pink', dot: 'bg-rose-400' },
+            { name: 'Natural Titanium', dot: 'bg-stone-400' },
+            { name: 'Emerald Green', dot: 'bg-emerald-500' },
+            { name: 'Ocean Blue', dot: 'bg-sky-500' },
+            { name: 'Lavender Purple', dot: 'bg-purple-400' },
+            { name: 'Sunset Gold', dot: 'bg-amber-400' }
+        ];
+
+        /**
+         * 168 Pre-Loaded Cellphone Models: 8 models per brand across all 21 brands.
+         * Every single model has an explicit `tier` (Category), `brand`, `storage`, `color`, `condition`, `price`, `stock`, `status`, and `notes`.
+         */
+        const SAMPLE_PHONES = [
+            // 1. Apple (8 models)
+            { id: 'CP-001', brand: 'Apple', model: 'iPhone 16 Pro Max', tier: 'Flagship', storage: '8GB / 256GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 84990, stock: 7, status: 'Available', notes: 'A18 Pro chip, 4K120 Dolby Vision, Camera Control, NTC Approved', updatedAt: '2026-11-24T13:10:00.000Z' },
+            { id: 'CP-002', brand: 'Apple', model: 'iPhone 16 Pro', tier: 'Camera-Centric', storage: '8GB / 256GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 70990, stock: 5, status: 'Available', notes: '6.3" Super Retina XDR, 5x Tetraprism telephoto, NTC Sealed', updatedAt: '2026-11-24T13:05:00.000Z' },
+            { id: 'CP-003', brand: 'Apple', model: 'iPhone 16 Plus', tier: 'Flagship', storage: '8GB / 128GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 62990, stock: 6, status: 'Available', notes: 'Pink aluminum finish, Action Button, all-day battery life', updatedAt: '2026-11-24T13:00:00.000Z' },
+            { id: 'CP-004', brand: 'Apple', model: 'iPhone 16', tier: 'Mid-Range', storage: '8GB / 128GB', color: 'Ocean Blue', condition: 'Brand New (Open Box)', price: 52500, stock: 2, status: 'Low Stock', notes: 'Ultramarine display unit box opened for inspection, full warranty', updatedAt: '2026-11-24T12:55:00.000Z' },
+            { id: 'CP-005', brand: 'Apple', model: 'iPhone 15 Pro', tier: 'Camera-Centric', storage: '8GB / 256GB', color: 'Natural Titanium', condition: 'Second Hand (Like New / 99%)', price: 54900, stock: 3, status: 'Low Stock', notes: '97% battery health, USB-C, clean frame, original box', updatedAt: '2026-11-24T12:50:00.000Z' },
+            { id: 'CP-006', brand: 'Apple', model: 'iPhone 14', tier: 'Mid-Range', storage: '6GB / 128GB', color: 'Starlight White', condition: 'Refurbished (Certified)', price: 31500, stock: 4, status: 'Available', notes: 'Store-certified refurbished, 92%+ battery, 6-month shop warranty', updatedAt: '2026-11-24T12:45:00.000Z' },
+            { id: 'CP-007', brand: 'Apple', model: 'iPhone 13', tier: 'Mid-Range', storage: '4GB / 128GB', color: 'Rose Pink', condition: 'Refurbished (Certified)', price: 24800, stock: 1, status: 'Reserved', notes: 'Reserved for walk-in buyer until 5:00 PM today', updatedAt: '2026-11-24T12:40:00.000Z' },
+            { id: 'CP-008', brand: 'Apple', model: 'iPhone SE (3rd Gen)', tier: 'Budget / Entry-Level', storage: '4GB / 64GB', color: 'Midnight Black', condition: 'Second Hand (Good / Used)', price: 13500, stock: 0, status: 'Out of Stock', notes: 'Compact Touch ID model, A15 Bionic, restocking next week', updatedAt: '2026-11-24T12:35:00.000Z' },
+
+            // 2. Samsung (8 models)
+            { id: 'CP-009', brand: 'Samsung', model: 'Galaxy S24 Ultra', tier: 'Flagship', storage: '12GB / 512GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 84990, stock: 6, status: 'Available', notes: 'S Pen included, Galaxy AI, 200MP Quad Tele, NTC Approved', updatedAt: '2026-11-24T12:30:00.000Z' },
+            { id: 'CP-010', brand: 'Samsung', model: 'Galaxy Z Fold 6', tier: 'Foldable / Flip', storage: '12GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 106990, stock: 2, status: 'Low Stock', notes: '7.6" inner AMOLED, Armor Aluminum hinge, dual-SIM + eSIM', updatedAt: '2026-11-24T12:25:00.000Z' },
+            { id: 'CP-011', brand: 'Samsung', model: 'Galaxy Z Flip 6', tier: 'Foldable / Flip', storage: '12GB / 256GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 67990, stock: 4, status: 'Available', notes: '3.4" Super AMOLED FlexWindow, 50MP main camera', updatedAt: '2026-11-24T12:20:00.000Z' },
+            { id: 'CP-012', brand: 'Samsung', model: 'Galaxy S24+', tier: 'Flagship', storage: '12GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Open Box)', price: 56900, stock: 2, status: 'Low Stock', notes: 'QHD+ 120Hz LTPO display, 4900mAh battery, sealed accessories', updatedAt: '2026-11-24T12:15:00.000Z' },
+            { id: 'CP-013', brand: 'Samsung', model: 'Galaxy A55 5G', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 24990, stock: 8, status: 'Available', notes: 'Metal frame, Gorilla Glass Victus+, IP67 water/dust resistance', updatedAt: '2026-11-24T12:10:00.000Z' },
+            { id: 'CP-014', brand: 'Samsung', model: 'Galaxy A35 5G', tier: 'Mid-Range', storage: '8GB / 128GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 17990, stock: 9, status: 'Available', notes: '120Hz Super AMOLED, 50MP OIS camera, Knox Vault security', updatedAt: '2026-11-24T12:05:00.000Z' },
+            { id: 'CP-015', brand: 'Samsung', model: 'Galaxy A15 4G', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 7990, stock: 12, status: 'Available', notes: '90Hz Super AMOLED display, 5000mAh battery, 25W support', updatedAt: '2026-11-24T12:00:00.000Z' },
+            { id: 'CP-016', brand: 'Samsung', model: 'Galaxy S22 Ultra', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Rose Pink', condition: 'Refurbished (Certified)', price: 29500, stock: 1, status: 'Low Stock', notes: '108MP + 10x optical zoom, S Pen tested & working', updatedAt: '2026-11-24T11:55:00.000Z' },
+
+            // 3. Oppo (8 models)
+            { id: 'CP-017', brand: 'Oppo', model: 'Find X7 Ultra', tier: 'Camera-Centric', storage: '16GB / 512GB', color: 'Sunset Gold', condition: 'Brand New (Open Box)', price: 58900, stock: 2, status: 'Low Stock', notes: 'Hasselblad Quad Camera with dual periscope lenses, 100W SUPERVOOC', updatedAt: '2026-11-24T11:50:00.000Z' },
+            { id: 'CP-018', brand: 'Oppo', model: 'Find N3 Flip', tier: 'Foldable / Flip', storage: '12GB / 256GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 54999, stock: 3, status: 'Low Stock', notes: 'Vertical outer screen, triple camera with telephoto portrait lens', updatedAt: '2026-11-24T11:45:00.000Z' },
+            { id: 'CP-019', brand: 'Oppo', model: 'Reno12 Pro 5G', tier: 'Camera-Centric', storage: '12GB / 512GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 28999, stock: 6, status: 'Available', notes: 'AI Portrait Expert, 80W SUPERVOOC Flash Charge, 120Hz curved OLED', updatedAt: '2026-11-24T11:40:00.000Z' },
+            { id: 'CP-020', brand: 'Oppo', model: 'Reno12 F 5G', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 18999, stock: 7, status: 'Available', notes: 'Halo Light ring, IP64 splash resistance, 5000mAh battery', updatedAt: '2026-11-24T11:35:00.000Z' },
+            { id: 'CP-021', brand: 'Oppo', model: 'A79 5G', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 13999, stock: 8, status: 'Available', notes: 'FHD+ 90Hz sunlight display, dual stereo speakers, 33W SUPERVOOC', updatedAt: '2026-11-24T11:30:00.000Z' },
+            { id: 'CP-022', brand: 'Oppo', model: 'A60', tier: 'Rugged / Outdoor', storage: '8GB / 128GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 8999, stock: 10, status: 'Available', notes: 'Splash touch & military-grade shock resistance, 45W SUPERVOOC', updatedAt: '2026-11-24T11:25:00.000Z' },
+            { id: 'CP-023', brand: 'Oppo', model: 'A18', tier: 'Budget / Entry-Level', storage: '4GB / 128GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 5999, stock: 15, status: 'Available', notes: 'Everyday budget handset, 5000mAh battery, Ultra Volume mode', updatedAt: '2026-11-24T11:20:00.000Z' },
+            { id: 'CP-024', brand: 'Oppo', model: 'A38', tier: 'Budget / Entry-Level', storage: '4GB / 128GB', color: 'Sunset Gold', condition: 'Second Hand (Good / Used)', price: 4200, stock: 0, status: 'Out of Stock', notes: 'Pre-owned unit sold out, 90Hz display, 50MP main lens', updatedAt: '2026-11-24T11:15:00.000Z' },
+
+            // 4. Xiaomi (8 models)
+            { id: 'CP-025', brand: 'Xiaomi', model: 'Xiaomi 14 Ultra', tier: 'Camera-Centric', storage: '16GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 79999, stock: 4, status: 'Available', notes: 'Leica Summilux quad camera, 1-inch LYT-900 sensor, 90W HyperCharge', updatedAt: '2026-11-24T11:10:00.000Z' },
+            { id: 'CP-026', brand: 'Xiaomi', model: 'Xiaomi 14', tier: 'Flagship', storage: '12GB / 512GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 54999, stock: 5, status: 'Available', notes: 'Compact 6.36" LTPO OLED, Snapdragon 8 Gen 3, Leica optics', updatedAt: '2026-11-24T11:05:00.000Z' },
+            { id: 'CP-027', brand: 'Xiaomi', model: 'Xiaomi 14T Pro', tier: 'Flagship', storage: '12GB / 512GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 37999, stock: 6, status: 'Available', notes: 'Dimensity 9300+, 144Hz AI display, 120W HyperCharge + 50W wireless', updatedAt: '2026-11-24T11:00:00.000Z' },
+            { id: 'CP-028', brand: 'Xiaomi', model: 'Xiaomi 14T', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 27999, stock: 7, status: 'Available', notes: 'Leica 50MP main + 50MP portrait telephoto, IP68 dust/water rating', updatedAt: '2026-11-24T10:55:00.000Z' },
+            { id: 'CP-029', brand: 'Xiaomi', model: 'Xiaomi 13T', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Second Hand (Like New / 99%)', price: 18500, stock: 2, status: 'Low Stock', notes: 'Meadow Green back, 144Hz AMOLED, 67W fast charger included', updatedAt: '2026-11-24T10:50:00.000Z' },
+            { id: 'CP-030', brand: 'Xiaomi', model: 'Xiaomi 12T Pro', tier: 'Flagship', storage: '8GB / 256GB', color: 'Starlight White', condition: 'Refurbished (Certified)', price: 17900, stock: 1, status: 'Reserved', notes: '200MP camera, Harman Kardon dual speakers, reserved for pickup', updatedAt: '2026-11-24T10:45:00.000Z' },
+            { id: 'CP-031', brand: 'Xiaomi', model: 'Xiaomi Mix Flip', tier: 'Foldable / Flip', storage: '12GB / 512GB', color: 'Lavender Purple', condition: 'Brand New (Open Box)', price: 59900, stock: 0, status: 'In Transit / Restocking', notes: '4.01" all-around outer screen, incoming batch from distributor', updatedAt: '2026-11-24T10:40:00.000Z' },
+            { id: 'CP-032', brand: 'Xiaomi', model: 'Xiaomi 11 Lite 5G NE', tier: 'Budget / Entry-Level', storage: '6GB / 128GB', color: 'Rose Pink', condition: 'Second Hand (Good / Used)', price: 7500, stock: 0, status: 'Discontinued', notes: 'Peach Pink slim unit, legacy model line', updatedAt: '2026-11-24T10:35:00.000Z' },
+
+            // 5. Redmi (8 models)
+            { id: 'CP-033', brand: 'Redmi', model: 'Redmi Note 13 Pro+ 5G', tier: 'Mid-Range', storage: '12GB / 512GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 24999, stock: 6, status: 'Available', notes: 'Curved 1.5K 120Hz AMOLED, 200MP OIS, 120W HyperCharge, IP68', updatedAt: '2026-11-24T10:30:00.000Z' },
+            { id: 'CP-034', brand: 'Redmi', model: 'Redmi Note 13 Pro 5G', tier: 'Camera-Centric', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 16999, stock: 8, status: 'Available', notes: '200MP main camera with OIS, 67W turbo charging, in-display fingerprint', updatedAt: '2026-11-24T10:25:00.000Z' },
+            { id: 'CP-035', brand: 'Redmi', model: 'Redmi Note 13 Pro 4G', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 13999, stock: 9, status: 'Available', notes: 'FHD+ 120Hz AMOLED, 200MP camera, 5000mAh battery', updatedAt: '2026-11-24T10:20:00.000Z' },
+            { id: 'CP-036', brand: 'Redmi', model: 'Redmi Note 13 5G', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 11999, stock: 10, status: 'Available', notes: 'Ultra-thin bezels, 108MP triple camera, 33W fast charging', updatedAt: '2026-11-24T10:15:00.000Z' },
+            { id: 'CP-037', brand: 'Redmi', model: 'Redmi Note 13 4G', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Starlight White', condition: 'Brand New (Sealed)', price: 8999, stock: 12, status: 'Available', notes: 'AMOLED 120Hz screen, 108MP camera, 5000mAh battery', updatedAt: '2026-11-24T10:10:00.000Z' },
+            { id: 'CP-038', brand: 'Redmi', model: 'Redmi 13C', tier: 'Budget / Entry-Level', storage: '6GB / 128GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 5499, stock: 16, status: 'Available', notes: '90Hz display, 50MP AI dual camera, 18W fast charge support', updatedAt: '2026-11-24T10:05:00.000Z' },
+            { id: 'CP-039', brand: 'Redmi', model: 'Redmi A3', tier: 'Budget / Entry-Level', storage: '4GB / 128GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 4299, stock: 3, status: 'Low Stock', notes: '6.71" 90Hz display, 5000mAh battery, clean value handset', updatedAt: '2026-11-24T10:00:00.000Z' },
+            { id: 'CP-040', brand: 'Redmi', model: 'Redmi Note 12 Pro 5G', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Second Hand (Good / Used)', price: 9800, stock: 0, status: 'Out of Stock', notes: 'Sony IMX766 sensor, 67W turbo charge, pre-owned unit', updatedAt: '2026-11-24T09:55:00.000Z' },
+
+            // 6. POCO (8 models)
+            { id: 'CP-041', brand: 'POCO', model: 'POCO F6 Pro', tier: 'Flagship', storage: '12GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 29999, stock: 5, status: 'Available', notes: 'Snapdragon 8 Gen 2, WQHD+ 120Hz Flow AMOLED, 120W HyperCharge', updatedAt: '2026-11-24T09:50:00.000Z' },
+            { id: 'CP-042', brand: 'POCO', model: 'POCO F6', tier: 'Gaming Phone', storage: '12GB / 512GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 22999, stock: 7, status: 'Available', notes: 'Snapdragon 8s Gen 3, WildBoost 3.0 gaming tuning, 90W turbo', updatedAt: '2026-11-24T09:45:00.000Z' },
+            { id: 'CP-043', brand: 'POCO', model: 'POCO X6 Pro 5G', tier: 'Gaming Phone', storage: '12GB / 512GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 18499, stock: 8, status: 'Available', notes: 'Dimensity 8300-Ultra, 120Hz CrystalRes display, 67W turbo charge', updatedAt: '2026-11-24T09:40:00.000Z' },
+            { id: 'CP-044', brand: 'POCO', model: 'POCO X6 5G', tier: 'Mid-Range', storage: '12GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 14999, stock: 6, status: 'Available', notes: 'Snapdragon 7s Gen 2, 64MP OIS triple camera, 67W fast charging', updatedAt: '2026-11-24T09:35:00.000Z' },
+            { id: 'CP-045', brand: 'POCO', model: 'POCO M6 Pro', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 10999, stock: 9, status: 'Available', notes: '120Hz Flow AMOLED, 64MP OIS camera, 67W turbo charging', updatedAt: '2026-11-24T09:30:00.000Z' },
+            { id: 'CP-046', brand: 'POCO', model: 'POCO M6', tier: 'Budget / Entry-Level', storage: '6GB / 128GB', color: 'Starlight White', condition: 'Brand New (Sealed)', price: 6799, stock: 3, status: 'Low Stock', notes: '108MP pro-grade camera, 90Hz FHD+ display, 33W fast charge', updatedAt: '2026-11-24T09:25:00.000Z' },
+            { id: 'CP-047', brand: 'POCO', model: 'POCO C65', tier: 'Budget / Entry-Level', storage: '8GB / 256GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 5699, stock: 11, status: 'Available', notes: '6.74" 90Hz display, 50MP triple camera, 5000mAh battery', updatedAt: '2026-11-24T09:20:00.000Z' },
+            { id: 'CP-048', brand: 'POCO', model: 'POCO X5 Pro 5G', tier: 'Gaming Phone', storage: '8GB / 256GB', color: 'Sunset Gold', condition: 'Second Hand (Like New / 99%)', price: 11500, stock: 0, status: 'In Transit / Restocking', notes: 'POCO Yellow signature edition, incoming stock', updatedAt: '2026-11-24T09:15:00.000Z' },
+
+            // 7. Vivo (8 models)
+            { id: 'CP-049', brand: 'Vivo', model: 'Vivo X100 Pro', tier: 'Camera-Centric', storage: '16GB / 512GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 54999, stock: 4, status: 'Available', notes: 'ZEISS APO Floating Telephoto, V3 imaging chip, 100W FlashCharge', updatedAt: '2026-11-24T09:10:00.000Z' },
+            { id: 'CP-050', brand: 'Vivo', model: 'Vivo X100', tier: 'Flagship', storage: '12GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 43999, stock: 5, status: 'Available', notes: 'Dimensity 9300, 120Hz 8T LTPO display, 120W FlashCharge', updatedAt: '2026-11-24T09:05:00.000Z' },
+            { id: 'CP-051', brand: 'Vivo', model: 'Vivo V30 Pro 5G', tier: 'Camera-Centric', storage: '12GB / 512GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 34999, stock: 6, status: 'Available', notes: 'ZEISS Triple Main Camera, Aura Light Portrait 3.0, 80W FlashCharge', updatedAt: '2026-11-24T09:00:00.000Z' },
+            { id: 'CP-052', brand: 'Vivo', model: 'Vivo V30 5G', tier: 'Mid-Range', storage: '12GB / 256GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 24999, stock: 7, status: 'Available', notes: 'Slim 7.45mm body, 5000mAh battery, Aura Light smart color temp', updatedAt: '2026-11-24T08:55:00.000Z' },
+            { id: 'CP-053', brand: 'Vivo', model: 'Vivo Y100', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 13999, stock: 8, status: 'Available', notes: '120Hz AMOLED display, 80W FlashCharge, 5000mAh battery', updatedAt: '2026-11-24T08:50:00.000Z' },
+            { id: 'CP-054', brand: 'Vivo', model: 'Vivo Y28', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 8999, stock: 10, status: 'Available', notes: '6000mAh massive battery, 44W FlashCharge, IP64 dust/water resistant', updatedAt: '2026-11-24T08:45:00.000Z' },
+            { id: 'CP-055', brand: 'Vivo', model: 'Vivo Y18', tier: 'Budget / Entry-Level', storage: '4GB / 128GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 5499, stock: 3, status: 'Low Stock', notes: '90Hz sunlight display, 50MP main camera, 5000mAh battery', updatedAt: '2026-11-24T08:40:00.000Z' },
+            { id: 'CP-056', brand: 'Vivo', model: 'Vivo V27 5G', tier: 'Camera-Centric', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Demo / Display Unit', price: 14500, stock: 1, status: 'Available', notes: 'Color-changing glass back demo unit, clean screen, with charger', updatedAt: '2026-11-24T08:35:00.000Z' },
+
+            // 8. Realme (8 models)
+            { id: 'CP-057', brand: 'Realme', model: 'Realme GT 6', tier: 'Flagship', storage: '12GB / 256GB', color: 'Silver / Titanium', condition: 'Brand New (Sealed)', price: 34999, stock: 5, status: 'Available', notes: 'Snapdragon 8s Gen 3, 6000-nit ultra bright display, 120W SUPERVOOC', updatedAt: '2026-11-24T08:30:00.000Z' },
+            { id: 'CP-058', brand: 'Realme', model: 'Realme GT 6T', tier: 'Gaming Phone', storage: '12GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 25999, stock: 6, status: 'Available', notes: 'Snapdragon 7+ Gen 3, Iceberg vapor cooling, 120W fast charge', updatedAt: '2026-11-24T08:25:00.000Z' },
+            { id: 'CP-059', brand: 'Realme', model: 'Realme 12+ 5G', tier: 'Camera-Centric', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 18999, stock: 7, status: 'Available', notes: 'Sony LYT-600 OIS portrait camera, vegan leather finish, 67W charge', updatedAt: '2026-11-24T08:20:00.000Z' },
+            { id: 'CP-060', brand: 'Realme', model: 'Realme 12 5G', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 14999, stock: 8, status: 'Available', notes: '108MP 3x in-sensor zoom, 120Hz display, dynamic button', updatedAt: '2026-11-24T08:15:00.000Z' },
+            { id: 'CP-061', brand: 'Realme', model: 'Realme C67', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 9999, stock: 11, status: 'Available', notes: '108MP 3x zoom camera, Mini Capsule 2.0, 33W SUPERVOOC', updatedAt: '2026-11-24T08:10:00.000Z' },
+            { id: 'CP-062', brand: 'Realme', model: 'Realme C65', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 7499, stock: 9, status: 'Available', notes: '45W fast charge, 50MP AI camera, 4-year fluency rating', updatedAt: '2026-11-24T08:05:00.000Z' },
+            { id: 'CP-063', brand: 'Realme', model: 'Realme Note 50', tier: 'Budget / Entry-Level', storage: '4GB / 64GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 3599, stock: 14, status: 'Available', notes: 'IP54 dust & splash resistance, 5000mAh battery, entry model', updatedAt: '2026-11-24T08:00:00.000Z' },
+            { id: 'CP-064', brand: 'Realme', model: 'Realme 11 Pro+ 5G', tier: 'Camera-Centric', storage: '12GB / 512GB', color: 'Sunset Gold', condition: 'Second Hand (Like New / 99%)', price: 14900, stock: 0, status: 'Out of Stock', notes: '200MP SuperZoom camera, Sunrise Beige lychee vegan leather', updatedAt: '2026-11-24T07:55:00.000Z' },
+
+            // 9. Infinix (8 models)
+            { id: 'CP-065', brand: 'Infinix', model: 'Infinix GT 20 Pro', tier: 'Gaming Phone', storage: '12GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 15999, stock: 8, status: 'Available', notes: 'Pixelworks X5 Turbo gaming chip, Mecha Loop LED, 144Hz AMOLED', updatedAt: '2026-11-24T07:50:00.000Z' },
+            { id: 'CP-066', brand: 'Infinix', model: 'Infinix Zero 30 5G', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 16999, stock: 5, status: 'Available', notes: '50MP 4K 60fps front camera, 108MP OIS rear camera, 68W charge', updatedAt: '2026-11-24T07:45:00.000Z' },
+            { id: 'CP-067', brand: 'Infinix', model: 'Infinix Note 40 Pro+ 5G', tier: 'Mid-Range', storage: '12GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 14999, stock: 7, status: 'Available', notes: '100W All-Round FastCharge + 20W MagCharge wireless kit in box', updatedAt: '2026-11-24T07:40:00.000Z' },
+            { id: 'CP-068', brand: 'Infinix', model: 'Infinix Note 40', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 10999, stock: 9, status: 'Available', notes: '120Hz AMOLED, 108MP camera, JBL tuned stereo speakers', updatedAt: '2026-11-24T07:35:00.000Z' },
+            { id: 'CP-069', brand: 'Infinix', model: 'Infinix Hot 40 Pro', tier: 'Gaming Phone', storage: '8GB / 256GB', color: 'Starlight White', condition: 'Brand New (Sealed)', price: 7999, stock: 10, status: 'Available', notes: 'Helio G99, 120Hz FHD+ display, 108MP main camera, 33W charge', updatedAt: '2026-11-24T07:30:00.000Z' },
+            { id: 'CP-070', brand: 'Infinix', model: 'Infinix Hot 40i', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 5299, stock: 3, status: 'Low Stock', notes: '90Hz display, 50MP AI dual camera, 18W fast charge', updatedAt: '2026-11-24T07:25:00.000Z' },
+            { id: 'CP-071', brand: 'Infinix', model: 'Infinix Smart 8', tier: 'Budget / Entry-Level', storage: '4GB / 128GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 4199, stock: 13, status: 'Available', notes: 'Magic Ring notification bar, 90Hz display, 5000mAh battery', updatedAt: '2026-11-24T07:20:00.000Z' },
+            { id: 'CP-072', brand: 'Infinix', model: 'Infinix Zero Ultra', tier: 'Camera-Centric', storage: '8GB / 256GB', color: 'Starlight White', condition: 'Refurbished (Certified)', price: 12900, stock: 1, status: 'Reserved', notes: '200MP OIS camera, 180W Thunder Charge support, reserved', updatedAt: '2026-11-24T07:15:00.000Z' },
+
+            // 10. Tecno (8 models)
+            { id: 'CP-073', brand: 'Tecno', model: 'Tecno Phantom V Fold', tier: 'Foldable / Flip', storage: '12GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Open Box)', price: 52900, stock: 2, status: 'Low Stock', notes: 'Dual 120Hz LTPO displays, Dimensity 9000+, 45W fast charge', updatedAt: '2026-11-24T07:10:00.000Z' },
+            { id: 'CP-074', brand: 'Tecno', model: 'Tecno Phantom V Flip 5G', tier: 'Foldable / Flip', storage: '8GB / 256GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 32999, stock: 4, status: 'Available', notes: 'Circular Planetsport cover screen, eco-leather finish', updatedAt: '2026-11-24T07:05:00.000Z' },
+            { id: 'CP-075', brand: 'Tecno', model: 'Tecno Camon 30 Premier 5G', tier: 'Camera-Centric', storage: '12GB / 512GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 23999, stock: 6, status: 'Available', notes: 'Sony IMX890 OIS + 50MP Periscope Telephoto, 70W Ultra Charge', updatedAt: '2026-11-24T07:00:00.000Z' },
+            { id: 'CP-076', brand: 'Tecno', model: 'Tecno Camon 30 Pro 5G', tier: 'Camera-Centric', storage: '12GB / 512GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 17999, stock: 7, status: 'Available', notes: 'Dimensity 8200 Ultimate, 144Hz AMOLED, 50MP OIS triple cam', updatedAt: '2026-11-24T06:55:00.000Z' },
+            { id: 'CP-077', brand: 'Tecno', model: 'Tecno Pova 6 Pro 5G', tier: 'Gaming Phone', storage: '12GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 13999, stock: 8, status: 'Available', notes: '6000mAh battery, 70W Ultra Charge, Dynamic-Tech LED light', updatedAt: '2026-11-24T06:50:00.000Z' },
+            { id: 'CP-078', brand: 'Tecno', model: 'Tecno Spark 20 Pro+', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 8999, stock: 10, status: 'Available', notes: 'Curved 120Hz AMOLED, 108MP Ultra Sensing camera, 33W charge', updatedAt: '2026-11-24T06:45:00.000Z' },
+            { id: 'CP-079', brand: 'Tecno', model: 'Tecno Spark 20', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 5499, stock: 12, status: 'Available', notes: '50MP AI camera, 32MP glow selfie cam, dual DTS stereo sound', updatedAt: '2026-11-24T06:40:00.000Z' },
+            { id: 'CP-080', brand: 'Tecno', model: 'Tecno Pop 8', tier: 'Budget / Entry-Level', storage: '3GB / 64GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 3699, stock: 0, status: 'Out of Stock', notes: '90Hz display with Dynamic Port, 5000mAh battery, sold out', updatedAt: '2026-11-24T06:35:00.000Z' },
+
+            // 11. Huawei (8 models)
+            { id: 'CP-081', brand: 'Huawei', model: 'Huawei Pura 70 Ultra', tier: 'Camera-Centric', storage: '16GB / 512GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 74999, stock: 3, status: 'Low Stock', notes: 'Pop-out retractable 1-inch XMAGE camera, 100W wired + 80W wireless', updatedAt: '2026-11-24T06:30:00.000Z' },
+            { id: 'CP-082', brand: 'Huawei', model: 'Huawei Pura 70 Pro', tier: 'Flagship', storage: '12GB / 512GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 59999, stock: 4, status: 'Available', notes: 'Kunlun Glass, 48MP macro telephoto, 100W SuperCharge', updatedAt: '2026-11-24T06:25:00.000Z' },
+            { id: 'CP-083', brand: 'Huawei', model: 'Huawei Mate X5', tier: 'Foldable / Flip', storage: '16GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Open Box)', price: 98900, stock: 2, status: 'Low Stock', notes: 'Featherweight quad-curved foldable, 50MP XMAGE camera system', updatedAt: '2026-11-24T06:20:00.000Z' },
+            { id: 'CP-084', brand: 'Huawei', model: 'Huawei Pocket 2', tier: 'Foldable / Flip', storage: '12GB / 512GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 68999, stock: 3, status: 'Low Stock', notes: 'Artistic Rococo White/Purple flip design, UV intensity sensor', updatedAt: '2026-11-24T06:15:00.000Z' },
+            { id: 'CP-085', brand: 'Huawei', model: 'Huawei Nova 12s', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 19999, stock: 6, status: 'Available', notes: 'Ultra-thin 6.88mm body, 60MP ultra-wide portrait selfie, 66W charge', updatedAt: '2026-11-24T06:10:00.000Z' },
+            { id: 'CP-086', brand: 'Huawei', model: 'Huawei Nova 12 SE', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 14999, stock: 7, status: 'Available', notes: '108MP high-res portrait system, 6.67" OLED display, 66W SuperCharge', updatedAt: '2026-11-24T06:05:00.000Z' },
+            { id: 'CP-087', brand: 'Huawei', model: 'Huawei Mate 50 Pro', tier: 'Flagship', storage: '8GB / 256GB', color: 'Sunset Gold', condition: 'Refurbished (Certified)', price: 28900, stock: 1, status: 'Low Stock', notes: 'Variable F1.4–F4.0 aperture XMAGE camera, Kunlun Glass', updatedAt: '2026-11-24T06:00:00.000Z' },
+            { id: 'CP-088', brand: 'Huawei', model: 'Huawei P60 Pro', tier: 'Camera-Centric', storage: '8GB / 256GB', color: 'Starlight White', condition: 'Second Hand (Like New / 99%)', price: 26500, stock: 0, status: 'Discontinued', notes: 'Rococo Pearl finish, night vision telephoto lens, legacy stock', updatedAt: '2026-11-24T05:55:00.000Z' },
+
+            // 12. Honor (8 models)
+            { id: 'CP-089', brand: 'Honor', model: 'Honor Magic6 Pro', tier: 'Flagship', storage: '12GB / 512GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 59999, stock: 4, status: 'Available', notes: '180MP periscope telephoto, 5600mAh silicon-carbon battery, 80W wired', updatedAt: '2026-11-24T05:50:00.000Z' },
+            { id: 'CP-090', brand: 'Honor', model: 'Honor Magic V3', tier: 'Foldable / Flip', storage: '12GB / 512GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 89999, stock: 2, status: 'Low Stock', notes: 'Ultra-slim 9.2mm folded profile, 3rd-gen silicon-carbon battery', updatedAt: '2026-11-24T05:45:00.000Z' },
+            { id: 'CP-091', brand: 'Honor', model: 'Honor Magic V2', tier: 'Foldable / Flip', storage: '16GB / 512GB', color: 'Lavender Purple', condition: 'Brand New (Open Box)', price: 68900, stock: 2, status: 'Low Stock', notes: 'Titanium hinge foldable, dual OLED 120Hz screens, stylus support', updatedAt: '2026-11-24T05:40:00.000Z' },
+            { id: 'CP-092', brand: 'Honor', model: 'Honor 200 Pro', tier: 'Camera-Centric', storage: '12GB / 512GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 29999, stock: 6, status: 'Available', notes: 'Harcourt Studio Portrait triple 50MP system, 100W wired + 66W wireless', updatedAt: '2026-11-24T05:35:00.000Z' },
+            { id: 'CP-093', brand: 'Honor', model: 'Honor 200', tier: 'Mid-Range', storage: '12GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 24999, stock: 7, status: 'Available', notes: '5200mAh battery, 100W Honor SuperCharge, 3840Hz PWM eye comfort', updatedAt: '2026-11-24T05:30:00.000Z' },
+            { id: 'CP-094', brand: 'Honor', model: 'Honor X9b 5G', tier: 'Rugged / Outdoor', storage: '12GB / 256GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 16999, stock: 8, status: 'Available', notes: 'Ultra-Bounce 360-degree anti-drop display, 5800mAh 3-day battery', updatedAt: '2026-11-24T05:25:00.000Z' },
+            { id: 'CP-095', brand: 'Honor', model: 'Honor X8b', tier: 'Mid-Range', storage: '8GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 12999, stock: 9, status: 'Available', notes: 'Huge 512GB storage, 108MP main camera, Magic Capsule UI', updatedAt: '2026-11-24T05:20:00.000Z' },
+            { id: 'CP-096', brand: 'Honor', model: 'Honor X7b', tier: 'Budget / Entry-Level', storage: '8GB / 256GB', color: 'Starlight White', condition: 'Brand New (Sealed)', price: 8999, stock: 0, status: 'Out of Stock', notes: '6000mAh endurance battery, dual stereo speakers, out of stock', updatedAt: '2026-11-24T05:15:00.000Z' },
+
+            // 13. Google Pixel (8 models)
+            { id: 'CP-097', brand: 'Google Pixel', model: 'Pixel 9 Pro XL', tier: 'Flagship', storage: '16GB / 256GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 64990, stock: 4, status: 'Available', notes: 'Google Tensor G4, Super Actua 6.8" display, Gemini AI, 5x telephoto', updatedAt: '2026-11-24T05:10:00.000Z' },
+            { id: 'CP-098', brand: 'Google Pixel', model: 'Pixel 9 Pro Fold', tier: 'Foldable / Flip', storage: '16GB / 256GB', color: 'Midnight Black', condition: 'Brand New (Open Box)', price: 96500, stock: 2, status: 'Low Stock', notes: '8" Super Actua Flex inner screen, 45MP Super Selfie, Tensor G4', updatedAt: '2026-11-24T05:05:00.000Z' },
+            { id: 'CP-099', brand: 'Google Pixel', model: 'Pixel 9 Pro', tier: 'Camera-Centric', storage: '16GB / 256GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 56990, stock: 5, status: 'Available', notes: 'Rose Quartz compact flagship, Pro triple camera array, 7 yrs updates', updatedAt: '2026-11-24T05:00:00.000Z' },
+            { id: 'CP-100', brand: 'Google Pixel', model: 'Pixel 9', tier: 'Flagship', storage: '12GB / 128GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 46990, stock: 6, status: 'Available', notes: 'Peony pink finish, Actua 6.3" OLED, Magic Editor & Best Take', updatedAt: '2026-11-24T04:55:00.000Z' },
+            { id: 'CP-101', brand: 'Google Pixel', model: 'Pixel 8 Pro', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Ocean Blue', condition: 'Second Hand (Like New / 99%)', price: 36500, stock: 2, status: 'Low Stock', notes: 'Bay blue finish, Tensor G3, 50MP Octa PD wide + 48MP 5x zoom', updatedAt: '2026-11-24T04:50:00.000Z' },
+            { id: 'CP-102', brand: 'Google Pixel', model: 'Pixel 8', tier: 'Mid-Range', storage: '8GB / 128GB', color: 'Rose Pink', condition: 'Second Hand (Like New / 99%)', price: 27500, stock: 3, status: 'Low Stock', notes: '98% battery health, clean OLED screen, complete box & cable', updatedAt: '2026-11-24T04:45:00.000Z' },
+            { id: 'CP-103', brand: 'Google Pixel', model: 'Pixel 8a', tier: 'Mid-Range', storage: '8GB / 128GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 26990, stock: 5, status: 'Available', notes: 'Aloe green, 120Hz Actua display, 64MP main camera, IP67', updatedAt: '2026-11-24T04:40:00.000Z' },
+            { id: 'CP-104', brand: 'Google Pixel', model: 'Pixel 7a', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Starlight White', condition: 'Refurbished (Certified)', price: 16500, stock: 1, status: 'Reserved', notes: 'Tensor G2, wireless charging, reserved for customer', updatedAt: '2026-11-24T04:35:00.000Z' },
+
+            // 14. OnePlus (8 models)
+            { id: 'CP-105', brand: 'OnePlus', model: 'OnePlus 12', tier: 'Flagship', storage: '16GB / 512GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 48990, stock: 5, status: 'Available', notes: 'Flowy Emerald, Snapdragon 8 Gen 3, 4th-Gen Hasselblad camera, 100W', updatedAt: '2026-11-24T04:30:00.000Z' },
+            { id: 'CP-106', brand: 'OnePlus', model: 'OnePlus Open', tier: 'Foldable / Flip', storage: '16GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Open Box)', price: 78500, stock: 2, status: 'Low Stock', notes: 'Voyager Black vegan leather, Open Canvas multitasking, 67W SUPERVOOC', updatedAt: '2026-11-24T04:25:00.000Z' },
+            { id: 'CP-107', brand: 'OnePlus', model: 'OnePlus 12R', tier: 'Gaming Phone', storage: '16GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 33990, stock: 6, status: 'Available', notes: 'Cool Blue, 5500mAh battery, 120Hz LTPO4 ProXDR display', updatedAt: '2026-11-24T04:20:00.000Z' },
+            { id: 'CP-108', brand: 'OnePlus', model: 'OnePlus Nord 4', tier: 'Mid-Range', storage: '12GB / 256GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 23990, stock: 7, status: 'Available', notes: 'All-metal unibody design, 5500mAh battery, 100W SUPERVOOC', updatedAt: '2026-11-24T04:15:00.000Z' },
+            { id: 'CP-109', brand: 'OnePlus', model: 'OnePlus Nord CE 4 Lite 5G', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 14990, stock: 8, status: 'Available', notes: '5500mAh battery with reverse charging, 120Hz AMOLED, 50W fast charge', updatedAt: '2026-11-24T04:10:00.000Z' },
+            { id: 'CP-110', brand: 'OnePlus', model: 'OnePlus Nord N30 SE', tier: 'Budget / Entry-Level', storage: '4GB / 128GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 7990, stock: 9, status: 'Available', notes: 'Cyan Spark finish, 50MP AI camera, dual stereo speakers', updatedAt: '2026-11-24T04:05:00.000Z' },
+            { id: 'CP-111', brand: 'OnePlus', model: 'OnePlus 11 5G', tier: 'Camera-Centric', storage: '16GB / 256GB', color: 'Midnight Black', condition: 'Second Hand (Like New / 99%)', price: 24500, stock: 1, status: 'Low Stock', notes: 'Titan Black, Hasselblad triple camera, Alert Slider', updatedAt: '2026-11-24T04:00:00.000Z' },
+            { id: 'CP-112', brand: 'OnePlus', model: 'OnePlus 10 Pro', tier: 'Flagship', storage: '8GB / 128GB', color: 'Emerald Green', condition: 'Second Hand (Good / Used)', price: 15900, stock: 0, status: 'Discontinued', notes: 'Volcanic Black / Emerald legacy unit', updatedAt: '2026-11-24T03:55:00.000Z' },
+
+            // 15. Asus ROG (8 models)
+            { id: 'CP-113', brand: 'Asus ROG', model: 'ROG Phone 8 Pro Edition', tier: 'Gaming Phone', storage: '24GB / 1TB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 79995, stock: 3, status: 'Low Stock', notes: '24GB RAM / 1TB storage, AniMe Vision mini-LED, AeroActive Cooler X', updatedAt: '2026-11-24T03:50:00.000Z' },
+            { id: 'CP-114', brand: 'Asus ROG', model: 'ROG Phone 8 Pro', tier: 'Gaming Phone', storage: '16GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Open Box)', price: 62500, stock: 4, status: 'Available', notes: 'Snapdragon 8 Gen 3, 165Hz Samsung AMOLED, AirTrigger ultrasonic', updatedAt: '2026-11-24T03:45:00.000Z' },
+            { id: 'CP-115', brand: 'Asus ROG', model: 'ROG Phone 8', tier: 'Gaming Phone', storage: '16GB / 256GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 54995, stock: 5, status: 'Available', notes: 'Phantom Gray, IP68 water resistance, dual USB-C ports, 5500mAh', updatedAt: '2026-11-24T03:40:00.000Z' },
+            { id: 'CP-116', brand: 'Asus ROG', model: 'ROG Phone 7 Ultimate', tier: 'Gaming Phone', storage: '16GB / 512GB', color: 'Starlight White', condition: 'Second Hand (Like New / 99%)', price: 38900, stock: 2, status: 'Low Stock', notes: 'ROG Vision rear matrix display, AeroActive Portal motorized vent', updatedAt: '2026-11-24T03:35:00.000Z' },
+            { id: 'CP-117', brand: 'Asus ROG', model: 'ROG Phone 7', tier: 'Gaming Phone', storage: '12GB / 256GB', color: 'Midnight Black', condition: 'Refurbished (Certified)', price: 31500, stock: 2, status: 'Low Stock', notes: '6000mAh dual-cell battery, 65W HyperCharge, GameFX audio', updatedAt: '2026-11-24T03:30:00.000Z' },
+            { id: 'CP-118', brand: 'Asus ROG', model: 'ROG Phone 6D', tier: 'Gaming Phone', storage: '12GB / 256GB', color: 'Natural Titanium', condition: 'Second Hand (Good / Used)', price: 21000, stock: 1, status: 'Available', notes: 'Dimensity 9000+, 165Hz AMOLED, tested gaming triggers', updatedAt: '2026-11-24T03:25:00.000Z' },
+            { id: 'CP-119', brand: 'Asus ROG', model: 'Zenfone 11 Ultra', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 48995, stock: 0, status: 'In Transit / Restocking', notes: 'Skyline Blue, 6-Axis Hybrid Gimbal Stabilizer 3.0, restocking', updatedAt: '2026-11-24T03:20:00.000Z' },
+            { id: 'CP-120', brand: 'Asus ROG', model: 'ROG Phone 6 Batman Edition', tier: 'Gaming Phone', storage: '12GB / 256GB', color: 'Midnight Black', condition: 'Demo / Display Unit', price: 26500, stock: 0, status: 'Discontinued', notes: 'Collector Batman edition display set, discontinued line', updatedAt: '2026-11-24T03:15:00.000Z' },
+
+            // 16. Nothing (8 models)
+            { id: 'CP-121', brand: 'Nothing', model: 'Nothing Phone (2a) Plus', tier: 'Mid-Range', storage: '12GB / 256GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 22990, stock: 6, status: 'Available', notes: 'Metallic Gray, Glyph Interface, Dimensity 7350 Pro, 50W fast charge', updatedAt: '2026-11-24T03:10:00.000Z' },
+            { id: 'CP-122', brand: 'Nothing', model: 'Nothing Phone (2a)', tier: 'Mid-Range', storage: '12GB / 256GB', color: 'Starlight White', condition: 'Brand New (Sealed)', price: 18990, stock: 8, status: 'Available', notes: 'Milk White transparent back, 3-LED Glyph Interface, 120Hz AMOLED', updatedAt: '2026-11-24T03:05:00.000Z' },
+            { id: 'CP-123', brand: 'Nothing', model: 'Nothing Phone (2)', tier: 'Flagship', storage: '12GB / 256GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 36990, stock: 4, status: 'Available', notes: 'Dark Gray, Snapdragon 8+ Gen 1, 11-zone Glyph lighting, Nothing OS', updatedAt: '2026-11-24T03:00:00.000Z' },
+            { id: 'CP-124', brand: 'Nothing', model: 'Nothing Phone (2) Special Edition', tier: 'Camera-Centric', storage: '12GB / 512GB', color: 'Starlight White', condition: 'Brand New (Open Box)', price: 39900, stock: 2, status: 'Low Stock', notes: '50MP dual rear camera + 32MP front, 4700mAh battery', updatedAt: '2026-11-24T02:55:00.000Z' },
+            { id: 'CP-125', brand: 'Nothing', model: 'Nothing Phone (1)', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Starlight White', condition: 'Second Hand (Like New / 99%)', price: 15500, stock: 2, status: 'Low Stock', notes: 'Clean Glyph lights, 120Hz OLED, wireless & reverse wireless charge', updatedAt: '2026-11-24T02:50:00.000Z' },
+            { id: 'CP-126', brand: 'Nothing', model: 'CMF Phone 1', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 11490, stock: 9, status: 'Available', notes: 'Interchangeable back cover & accessory screw point, 120Hz AMOLED', updatedAt: '2026-11-24T02:45:00.000Z' },
+            { id: 'CP-127', brand: 'Nothing', model: 'CMF Phone 1 (Light Green)', tier: 'Budget / Entry-Level', storage: '8GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 12990, stock: 5, status: 'Available', notes: 'Light Green edition, Dimensity 7300 5G, 5000mAh battery', updatedAt: '2026-11-24T02:40:00.000Z' },
+            { id: 'CP-128', brand: 'Nothing', model: 'Nothing Phone (1) Display Unit', tier: 'Mid-Range', storage: '8GB / 128GB', color: 'Midnight Black', condition: 'Demo / Display Unit', price: 12500, stock: 0, status: 'Out of Stock', notes: 'Black demo unit sold out', updatedAt: '2026-11-24T02:35:00.000Z' },
+
+            // 17. Sony (8 models)
+            { id: 'CP-129', brand: 'Sony', model: 'Xperia 1 VI', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 72990, stock: 3, status: 'Low Stock', notes: 'Khaki Green, 85–170mm true optical zoom telephoto, 19.5:9 OLED', updatedAt: '2026-11-24T02:30:00.000Z' },
+            { id: 'CP-130', brand: 'Sony', model: 'Xperia 1 V', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Midnight Black', condition: 'Second Hand (Like New / 99%)', price: 44500, stock: 2, status: 'Low Stock', notes: 'Exmor T 4K 120fps Cinema Pro sensor, ZEISS T*, 3.5mm jack', updatedAt: '2026-11-24T02:25:00.000Z' },
+            { id: 'CP-131', brand: 'Sony', model: 'Xperia 5 V', tier: 'Flagship', storage: '8GB / 128GB', color: 'Ocean Blue', condition: 'Brand New (Open Box)', price: 46900, stock: 2, status: 'Low Stock', notes: 'Blue compact flagship, 6.1" FHD+ 120Hz OLED, 5000mAh battery', updatedAt: '2026-11-24T02:20:00.000Z' },
+            { id: 'CP-132', brand: 'Sony', model: 'Xperia 10 VI', tier: 'Mid-Range', storage: '8GB / 128GB', color: 'Starlight White', condition: 'Brand New (Sealed)', price: 22990, stock: 6, status: 'Available', notes: 'Ultra-lightweight 164g, 5000mAh 2-day battery, front stereo sound', updatedAt: '2026-11-24T02:15:00.000Z' },
+            { id: 'CP-133', brand: 'Sony', model: 'Xperia 10 V', tier: 'Mid-Range', storage: '6GB / 128GB', color: 'Lavender Purple', condition: 'Refurbished (Certified)', price: 15800, stock: 3, status: 'Low Stock', notes: 'Lavender OLED, IP65/IP68 water resistant, 5000mAh battery', updatedAt: '2026-11-24T02:10:00.000Z' },
+            { id: 'CP-134', brand: 'Sony', model: 'Xperia PRO-I', tier: 'Camera-Centric', storage: '12GB / 512GB', color: 'Midnight Black', condition: 'Second Hand (Like New / 99%)', price: 49500, stock: 1, status: 'Reserved', notes: '1.0-type Exmor RS sensor with dual aperture, reserved for filmmaker', updatedAt: '2026-11-24T02:05:00.000Z' },
+            { id: 'CP-135', brand: 'Sony', model: 'Xperia L4', tier: 'Budget / Entry-Level', storage: '3GB / 64GB', color: 'Midnight Black', condition: 'Second Hand (Good / Used)', price: 4500, stock: 4, status: 'Available', notes: '21:9 CinemaWide 6.2" screen, triple camera, basic backup phone', updatedAt: '2026-11-24T02:00:00.000Z' },
+            { id: 'CP-136', brand: 'Sony', model: 'Xperia 1 IV', tier: 'Flagship', storage: '12GB / 256GB', color: 'Lavender Purple', condition: 'For Parts / Defective', price: 6500, stock: 0, status: 'Discontinued', notes: 'Green line on display, camera & board intact', updatedAt: '2026-11-24T01:55:00.000Z' },
+
+            // 18. Motorola (8 models)
+            { id: 'CP-137', brand: 'Motorola', model: 'Razr 50 Ultra (Razr+ 2024)', tier: 'Foldable / Flip', storage: '12GB / 512GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 59990, stock: 4, status: 'Available', notes: 'Hot Pink / Peach Fuzz, 4.0" pOLED cover display, Moto AI, 45W', updatedAt: '2026-11-24T01:50:00.000Z' },
+            { id: 'CP-138', brand: 'Motorola', model: 'Razr 50', tier: 'Foldable / Flip', storage: '8GB / 256GB', color: 'Sunset Gold', condition: 'Brand New (Sealed)', price: 42990, stock: 5, status: 'Available', notes: 'Spritz Orange / Sunset gold vegan suede finish, 3.6" outer screen', updatedAt: '2026-11-24T01:45:00.000Z' },
+            { id: 'CP-139', brand: 'Motorola', model: 'Razr 40 Ultra', tier: 'Foldable / Flip', storage: '8GB / 256GB', color: 'Rose Pink', condition: 'Demo / Display Unit', price: 32900, stock: 2, status: 'Low Stock', notes: 'Viva Magenta store display set, clean crease, with box', updatedAt: '2026-11-24T01:40:00.000Z' },
+            { id: 'CP-140', brand: 'Motorola', model: 'Edge 50 Ultra', tier: 'Flagship', storage: '16GB / 512GB', color: 'Natural Titanium', condition: 'Brand New (Sealed)', price: 47990, stock: 4, status: 'Available', notes: 'Nordic Wood / Titanium finish, 125W TurboPower, Pantone validated', updatedAt: '2026-11-24T01:35:00.000Z' },
+            { id: 'CP-141', brand: 'Motorola', model: 'Edge 50 Pro', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 29990, stock: 6, status: 'Available', notes: 'Luxe Lavender, 50MP OIS + 10MP 3x telephoto, 144Hz curved pOLED', updatedAt: '2026-11-24T01:30:00.000Z' },
+            { id: 'CP-142', brand: 'Motorola', model: 'Moto G84 5G', tier: 'Mid-Range', storage: '12GB / 256GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 14990, stock: 7, status: 'Available', notes: 'Viva Magenta vegan leather, 120Hz 10-bit pOLED, 50MP OIS', updatedAt: '2026-11-24T01:25:00.000Z' },
+            { id: 'CP-143', brand: 'Motorola', model: 'Moto G24 Power', tier: 'Budget / Entry-Level', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 7990, stock: 10, status: 'Available', notes: '6000mAh battery, 30W TurboPower charging, clean Android', updatedAt: '2026-11-24T01:20:00.000Z' },
+            { id: 'CP-144', brand: 'Motorola', model: 'Defy 2', tier: 'Rugged / Outdoor', storage: '6GB / 128GB', color: 'Midnight Black', condition: 'Second Hand (Good / Used)', price: 16500, stock: 0, status: 'Out of Stock', notes: 'MIL-STD-810H & IP68 rugged device with antimicrobial coating', updatedAt: '2026-11-24T01:15:00.000Z' },
+
+            // 19. Nokia (8 models)
+            { id: 'CP-145', brand: 'Nokia', model: 'Nokia XR21 5G', tier: 'Rugged / Outdoor', storage: '6GB / 128GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 23500, stock: 5, status: 'Available', notes: 'Pine Green, MIL-STD-810H drop proof, IP69K water/dust resistant', updatedAt: '2026-11-24T01:10:00.000Z' },
+            { id: 'CP-146', brand: 'Nokia', model: 'Nokia G60 5G', tier: 'Mid-Range', storage: '6GB / 128GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 12990, stock: 6, status: 'Available', notes: '120Hz FHD+ display, 50MP AI triple camera, 3-yr OS/security', updatedAt: '2026-11-24T01:05:00.000Z' },
+            { id: 'CP-147', brand: 'Nokia', model: 'Nokia G42 5G', tier: 'Mid-Range', storage: '6GB / 128GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 10990, stock: 7, status: 'Available', notes: 'So Pink / Purple, QuickFix repairable design, 5000mAh battery', updatedAt: '2026-11-24T01:00:00.000Z' },
+            { id: 'CP-148', brand: 'Nokia', model: 'Nokia G22', tier: 'Budget / Entry-Level', storage: '4GB / 128GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 6990, stock: 8, status: 'Available', notes: 'Meteor Gray / Lagoon Blue, 90Hz display, 50MP main sensor', updatedAt: '2026-11-24T00:55:00.000Z' },
+            { id: 'CP-149', brand: 'Nokia', model: 'Nokia C32', tier: 'Budget / Entry-Level', storage: '4GB / 128GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 5490, stock: 3, status: 'Low Stock', notes: 'Beach Pink tempered glass back, 50MP dual camera, 3-day battery', updatedAt: '2026-11-24T00:50:00.000Z' },
+            { id: 'CP-150', brand: 'Nokia', model: 'Nokia C21 Plus', tier: 'Budget / Entry-Level', storage: '3GB / 64GB', color: 'Starlight White', condition: 'Second Hand (Good / Used)', price: 3200, stock: 5, status: 'Available', notes: 'Metal inner chassis, IP52 splash resistance, reliable backup unit', updatedAt: '2026-11-24T00:45:00.000Z' },
+            { id: 'CP-151', brand: 'Nokia', model: 'Nokia 8.3 5G', tier: 'Camera-Centric', storage: '8GB / 128GB', color: 'Ocean Blue', condition: 'Refurbished (Certified)', price: 11800, stock: 1, status: 'Low Stock', notes: 'Polar Night, ZEISS PureView quad camera with OZO spatial audio', updatedAt: '2026-11-24T00:40:00.000Z' },
+            { id: 'CP-152', brand: 'Nokia', model: 'Nokia 9 PureView', tier: 'Camera-Centric', storage: '6GB / 128GB', color: 'Midnight Black', condition: 'Second Hand (Good / Used)', price: 8900, stock: 0, status: 'Discontinued', notes: 'Penta-lens ZEISS imaging array, collector model', updatedAt: '2026-11-24T00:35:00.000Z' },
+
+            // 20. Cherry Mobile (8 models)
+            { id: 'CP-153', brand: 'Cherry Mobile', model: 'Cherry Aqua SV', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Sealed)', price: 9999, stock: 7, status: 'Available', notes: 'FHD+ IPS display, 64MP main camera, 5000mAh battery, local warranty', updatedAt: '2026-11-24T00:30:00.000Z' },
+            { id: 'CP-154', brand: 'Cherry Mobile', model: 'Cherry Aqua S10 Pro', tier: 'Mid-Range', storage: '8GB / 128GB', color: 'Emerald Green', condition: 'Brand New (Sealed)', price: 7999, stock: 8, status: 'Available', notes: '6.6" FHD+ display, 48MP AI camera, fast side fingerprint sensor', updatedAt: '2026-11-24T00:25:00.000Z' },
+            { id: 'CP-155', brand: 'Cherry Mobile', model: 'Cherry Flare S8 Pro', tier: 'Budget / Entry-Level', storage: '4GB / 64GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 4499, stock: 10, status: 'Available', notes: 'Affordable everyday smartphone, dual 4G LTE, 4000mAh battery', updatedAt: '2026-11-24T00:20:00.000Z' },
+            { id: 'CP-156', brand: 'Cherry Mobile', model: 'Cherry Flare Y20', tier: 'Budget / Entry-Level', storage: '3GB / 64GB', color: 'Rose Pink', condition: 'Brand New (Sealed)', price: 3299, stock: 12, status: 'Available', notes: '6.5" HD+ display, budget student/home phone, dual SIM', updatedAt: '2026-11-24T00:15:00.000Z' },
+            { id: 'CP-157', brand: 'Cherry Mobile', model: 'Cherry Aqua GR18', tier: 'Budget / Entry-Level', storage: '2GB / 32GB', color: 'Starlight White', condition: 'Brand New (Sealed)', price: 2499, stock: 3, status: 'Low Stock', notes: 'Entry-level call/text & messaging handset, compact form factor', updatedAt: '2026-11-24T00:10:00.000Z' },
+            { id: 'CP-158', brand: 'Cherry Mobile', model: 'Cherry Omega HD 4', tier: 'Camera-Centric', storage: '4GB / 64GB', color: 'Sunset Gold', condition: 'Second Hand (Good / Used)', price: 2800, stock: 2, status: 'Low Stock', notes: 'Pre-owned unit, clean screen, charger included', updatedAt: '2026-11-24T00:05:00.000Z' },
+            { id: 'CP-159', brand: 'Cherry Mobile', model: 'Cherry Flare S8 Deluxe', tier: 'Budget / Entry-Level', storage: '4GB / 64GB', color: 'Midnight Black', condition: 'Demo / Display Unit', price: 3500, stock: 1, status: 'Reserved', notes: 'Reserved counter unit', updatedAt: '2026-11-24T00:00:00.000Z' },
+            { id: 'CP-160', brand: 'Cherry Mobile', model: 'Cherry Aqua SV Display', tier: 'Mid-Range', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Demo / Display Unit', price: 7500, stock: 0, status: 'Out of Stock', notes: 'Display set sold out', updatedAt: '2026-11-23T23:55:00.000Z' },
+
+            // 21. Other (8 models)
+            { id: 'CP-161', brand: 'Other', model: 'RedMagic 9 Pro (ZTE Nubia)', tier: 'Gaming Phone', storage: '16GB / 512GB', color: 'Midnight Black', condition: 'Brand New (Sealed)', price: 49999, stock: 4, status: 'Available', notes: 'Built-in 22,000 RPM turbo fan, shoulder triggers, 6500mAh battery', updatedAt: '2026-11-23T23:50:00.000Z' },
+            { id: 'CP-162', brand: 'Other', model: 'Lenovo Legion Y70', tier: 'Gaming Phone', storage: '12GB / 256GB', color: 'Starlight White', condition: 'Second Hand (Like New / 99%)', price: 15800, stock: 2, status: 'Low Stock', notes: 'Snapdragon 8+ Gen 1, 144Hz OLED, dual USB-C ports', updatedAt: '2026-11-23T23:45:00.000Z' },
+            { id: 'CP-163', brand: 'Other', model: 'Sharp Aquos R8s Pro', tier: 'Camera-Centric', storage: '12GB / 256GB', color: 'Midnight Black', condition: 'Refurbished (Certified)', price: 29800, stock: 3, status: 'Available', notes: '1-inch Leica Summicron sensor, 240Hz Pro IGZO OLED display', updatedAt: '2026-11-23T23:40:00.000Z' },
+            { id: 'CP-164', brand: 'Other', model: 'Itel RS4', tier: 'Budget / Entry-Level', storage: '8GB / 128GB', color: 'Starlight White', condition: 'Brand New (Sealed)', price: 5499, stock: 11, status: 'Available', notes: 'Helio G99 Ultimate, 120Hz display, 45W fast charger included', updatedAt: '2026-11-23T23:35:00.000Z' },
+            { id: 'CP-165', brand: 'Other', model: 'Fairphone 5', tier: 'Rugged / Outdoor', storage: '8GB / 256GB', color: 'Ocean Blue', condition: 'Brand New (Open Box)', price: 38900, stock: 2, status: 'Low Stock', notes: 'Modular sustainable phone with user-replaceable battery & cameras', updatedAt: '2026-11-23T23:30:00.000Z' },
+            { id: 'CP-166', brand: 'Other', model: 'Meizu 21 Pro', tier: 'Flagship', storage: '16GB / 512GB', color: 'Lavender Purple', condition: 'Brand New (Sealed)', price: 42900, stock: 3, status: 'Available', notes: '2K+ 120Hz OLED, ultrasonic mTouch 2.0, 80W wired + 50W wireless', updatedAt: '2026-11-23T23:25:00.000Z' },
+            { id: 'CP-167', brand: 'Other', model: 'LG Velvet 5G', tier: 'Mid-Range', storage: '8GB / 128GB', color: 'Sunset Gold', condition: 'For Parts / Defective', price: 3500, stock: 1, status: 'Discontinued', notes: 'Cracked OLED glass (touch working), good board & camera parts', updatedAt: '2026-11-23T23:20:00.000Z' },
+            { id: 'CP-168', brand: 'Other', model: 'BlackBerry KEY2', tier: 'Mid-Range', storage: '6GB / 64GB', color: 'Midnight Black', condition: 'Second Hand (Good / Used)', price: 12900, stock: 0, status: 'Discontinued', notes: 'Physical QWERTY keyboard unit, Android 8.1, collector piece', updatedAt: '2026-11-23T23:15:00.000Z' }
+        ];
+
+        // State
+        let phones = [];
+        let currentPage = 1;
+        let pendingConfirmCallback = null;
+        let isCustomStorageActive = false;
+
+        // DOM Elements
+        const desktopTableBody = document.getElementById('desktopTableBody');
+        const mobileCardsContainer = document.getElementById('mobileCardsContainer');
+        const emptyState = document.getElementById('emptyState');
+        const paginationBar = document.getElementById('paginationBar');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const brandFilter = document.getElementById('brandFilter');
+        const tierFilter = document.getElementById('tierFilter');
+        const conditionFilter = document.getElementById('conditionFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const sortSelect = document.getElementById('sortSelect');
+        const fieldStock = document.getElementById('fieldStock');
+        const fieldStatus = document.getElementById('fieldStatus');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPhonesFromStorage();
+            populateCategoryControls();
+            setupEventListeners();
+            renderApp();
+        });
+
+        /**
+         * Populate Filter Dropdowns, Form Selects, Custom Storage Picker & Color Chips
+         */
+        function populateCategoryControls() {
+            // Brands with model count labels
+            brandFilter.innerHTML = `<option value="All">All Brands (${phones.length})</option>` +
+                BRAND_OPTIONS.map(b => {
+                    const count = phones.filter(p => p.brand === b).length;
+                    return `<option value="${escapeHtml(b)}">${escapeHtml(b)} (${count})</option>`;
+                }).join('');
+
+            document.getElementById('fieldBrand').innerHTML =
+                BRAND_OPTIONS.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
+
+            // Categories / Tiers
+            tierFilter.innerHTML = `<option value="All">All Categories</option>` +
+                TIER_OPTIONS.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+            document.getElementById('fieldTier').innerHTML =
+                TIER_OPTIONS.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+            // Conditions
+            conditionFilter.innerHTML = `<option value="All">All Conditions</option>` +
+                CONDITION_OPTIONS.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+            document.getElementById('fieldCondition').innerHTML =
+                CONDITION_OPTIONS.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+            // Statuses
+            statusFilter.innerHTML = `<option value="All">All Statuses</option>` +
+                STATUS_OPTIONS.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            document.getElementById('fieldStatus').innerHTML =
+                STATUS_OPTIONS.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+
+            // Custom RAM / Storage Grid Buttons
+            renderStorageOptionsGrid('8GB / 256GB');
+
+            // Colorway Quick-Tap Chips
+            document.getElementById('colorwayChipsContainer').innerHTML = COLORWAY_PRESETS.map(c => `
+                <button type="button" onclick="selectColorwayChip('${escapeHtml(c.name)}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100/90 hover:bg-rose-50 hover:text-rose-700 text-slate-700 border border-slate-200/80 hover:border-rose-200 transition-colors">
+                    <span class="w-2.5 h-2.5 rounded-full ${c.dot} shrink-0"></span>
+                    ${escapeHtml(c.name)}
+                </button>
+            `).join('');
+        }
+
+        function refreshBrandFilterCounts() {
+            const selected = brandFilter.value;
+            brandFilter.innerHTML = `<option value="All">All Brands (${phones.length})</option>` +
+                BRAND_OPTIONS.map(b => {
+                    const count = phones.filter(p => p.brand === b).length;
+                    return `<option value="${escapeHtml(b)}">${escapeHtml(b)} (${count})</option>`;
+                }).join('');
+            if ([...brandFilter.options].some(o => o.value === selected)) {
+                brandFilter.value = selected;
+            } else {
+                brandFilter.value = 'All';
+            }
+        }
+
+        /**
+         * Custom Storage Picker Helpers
+         */
+        function renderStorageOptionsGrid(selectedVal) {
+            document.getElementById('storageOptionsGrid').innerHTML = STORAGE_OPTIONS.map(opt => {
+                const isSelected = opt === selectedVal;
+                return `
+                    <button type="button" onclick="selectStorageOption('${escapeHtml(opt)}')" class="px-2.5 py-2 rounded-xl text-xs font-semibold text-center border transition-all ${
+                        isSelected
+                            ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-200/80 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700'
+                    }">
+                        ${escapeHtml(opt)}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleStorageMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('storageCustomMenu');
+            const chevron = document.getElementById('storageChevron');
+            const isHidden = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180', isHidden);
+        }
+
+        function closeStorageMenu() {
+            const menu = document.getElementById('storageCustomMenu');
+            const chevron = document.getElementById('storageChevron');
+            if (menu) menu.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+
+        function selectStorageOption(val) {
+            isCustomStorageActive = false;
+            document.getElementById('customStorageInputBox').classList.add('hidden');
+            document.getElementById('fieldStorage').value = val;
+            document.getElementById('storageSelectedLabel').textContent = val;
+            renderStorageOptionsGrid(val);
+            closeStorageMenu();
+        }
+
+        function enableCustomStorageMode() {
+            isCustomStorageActive = true;
+            closeStorageMenu();
+            const box = document.getElementById('customStorageInputBox');
+            const input = document.getElementById('customStorageInput');
+            box.classList.remove('hidden');
+            document.getElementById('storageSelectedLabel').textContent = 'Custom RAM / Storage';
+            input.value = STORAGE_OPTIONS.includes(document.getElementById('fieldStorage').value)
+                ? ''
+                : document.getElementById('fieldStorage').value;
+            input.focus();
+        }
+
+        function disableCustomStorageMode() {
+            isCustomStorageActive = false;
+            document.getElementById('customStorageInputBox').classList.add('hidden');
+            const fallback = '8GB / 256GB';
+            document.getElementById('fieldStorage').value = fallback;
+            document.getElementById('storageSelectedLabel').textContent = fallback;
+            renderStorageOptionsGrid(fallback);
+        }
+
+        function selectColorwayChip(colorName) {
+            document.getElementById('fieldColor').value = colorName;
+        }
+
+        /**
+         * Normalize & Load from localStorage
+         */
+        function normalizePhoneRecord(p) {
+            const defaultTier = TIER_OPTIONS[0] || 'Flagship';
+            return {
+                ...p,
+                brand: BRAND_OPTIONS.includes(p.brand) ? p.brand : 'Other',
+                model: p.model || 'Unknown Model',
+                tier: TIER_OPTIONS.includes(p.tier) ? p.tier : defaultTier,
+                storage: p.storage || '8GB / 128GB',
+                color: p.color || 'Default',
+                condition: CONDITION_OPTIONS.includes(p.condition) ? p.condition : 'Brand New (Sealed)',
+                price: Number(p.price || 0),
+                stock: Number(p.stock || 0),
+                status: STATUS_OPTIONS.includes(p.status) ? p.status : 'Available',
+                notes: p.notes || '',
+                updatedAt: p.updatedAt || new Date().toISOString()
+            };
+        }
+
+        function loadPhonesFromStorage() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw === null) {
+                    phones = JSON.parse(JSON.stringify(SAMPLE_PHONES));
+                    savePhonesToStorage();
+                } else {
+                    const parsed = JSON.parse(raw);
+                    phones = Array.isArray(parsed) ? parsed.map(normalizePhoneRecord) : [];
+                    savePhonesToStorage();
+                }
+            } catch (err) {
+                console.error('Error loading cellphone data:', err);
+                phones = JSON.parse(JSON.stringify(SAMPLE_PHONES));
+            }
+        }
+
+        function savePhonesToStorage() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(phones));
+            } catch (err) {
+                console.error('Error saving cellphone data:', err);
+                showToast('Unable to save to browser storage.', 'error');
+            }
+        }
+
+        function setupEventListeners() {
+            searchInput.addEventListener('input', () => {
+                clearSearchBtn.classList.toggle('hidden', searchInput.value.trim() === '');
+                currentPage = 1;
+                renderPhones();
+            });
+
+            [brandFilter, tierFilter, conditionFilter, statusFilter, sortSelect].forEach(el => {
+                el.addEventListener('change', () => {
+                    currentPage = 1;
+                    renderPhones();
+                });
+            });
+
+            document.getElementById('customStorageInput').addEventListener('input', (e) => {
+                if (isCustomStorageActive) {
+                    const val = e.target.value.trim();
+                    document.getElementById('fieldStorage').value = val || 'Standard';
+                    document.getElementById('storageSelectedLabel').textContent = val || 'Custom RAM / Storage';
+                }
+            });
+
+            fieldStock.addEventListener('input', () => {
+                const qty = parseInt(fieldStock.value, 10);
+                if (isNaN(qty)) return;
+                const lockedStatuses = ['Reserved', 'In Transit / Restocking', 'Discontinued'];
+                if (lockedStatuses.includes(fieldStatus.value)) return;
+                if (qty <= 0) {
+                    fieldStatus.value = 'Out of Stock';
+                } else if (qty <= 3) {
+                    fieldStatus.value = 'Low Stock';
+                } else {
+                    fieldStatus.value = 'Available';
+                }
+            });
+
+            document.getElementById('phoneForm').addEventListener('submit', handleFormSubmit);
+
+            const exportMenuBtn = document.getElementById('exportMenuBtn');
+            const exportMenu = document.getElementById('exportMenu');
+            exportMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                exportMenu.classList.add('hidden');
+                const storageWrapper = document.getElementById('storageDropdownWrapper');
+                if (storageWrapper && !storageWrapper.contains(e.target)) {
+                    closeStorageMenu();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closePhoneModal();
+                    closeViewModal();
+                    closeConfirmModal();
+                    closeStorageMenu();
+                    exportMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        function renderApp() {
+            refreshBrandFilterCounts();
+            updateSummaryStats();
+            renderPhones();
+        }
+
+        /**
+         * Update 4 KPI Cards
+         */
+        function updateSummaryStats() {
+            const totalModels = phones.length;
+            const totalUnits = phones.reduce((sum, p) => sum + Number(p.stock || 0), 0);
+            const totalValue = phones.reduce((sum, p) => sum + (Number(p.price || 0) * Number(p.stock || 0)), 0);
+            const availableModels = phones.filter(p => p.status === 'Available' && Number(p.stock) > 0).length;
+            const alertCount = phones.filter(p =>
+                p.status === 'Low Stock' ||
+                p.status === 'Out of Stock' ||
+                p.status === 'In Transit / Restocking' ||
+                Number(p.stock) <= 3
+            ).length;
+
+            document.getElementById('statTotalUnits').textContent = totalUnits.toLocaleString('en-PH');
+            document.getElementById('statModelCount').textContent = `${totalModels} ${totalModels === 1 ? 'model' : 'models'}`;
+            document.getElementById('statTotalValue').textContent = formatPHP(totalValue);
+            document.getElementById('statAvailableModels').textContent = availableModels;
+            document.getElementById('statStockAlerts').textContent = alertCount;
+        }
+
+        /**
+         * Filter, Sort, Paginate & Render Table + Mobile Cards
+         */
+        function renderPhones() {
+            const query = searchInput.value.trim().toLowerCase();
+            const brandVal = brandFilter.value;
+            const tierVal = tierFilter.value;
+            const condVal = conditionFilter.value;
+            const statusVal = statusFilter.value;
+            const sortVal = sortSelect.value;
+
+            let filtered = phones.filter(p => {
+                const matchesQuery = !query ||
+                    p.id.toLowerCase().includes(query) ||
+                    p.brand.toLowerCase().includes(query) ||
+                    p.model.toLowerCase().includes(query) ||
+                    (p.tier && p.tier.toLowerCase().includes(query)) ||
+                    (p.storage && p.storage.toLowerCase().includes(query)) ||
+                    (p.color && p.color.toLowerCase().includes(query)) ||
+                    (p.notes && p.notes.toLowerCase().includes(query));
+
+                const matchesBrand = brandVal === 'All' || p.brand === brandVal;
+                const matchesTier = tierVal === 'All' || p.tier === tierVal;
+                const matchesCond = condVal === 'All' || p.condition === condVal;
+                const matchesStatus = statusVal === 'All' || p.status === statusVal;
+
+                return matchesQuery && matchesBrand && matchesTier && matchesCond && matchesStatus;
+            });
+
+            filtered.sort((a, b) => {
+                switch (sortVal) {
+                    case 'model-asc':
+                        return `${a.brand} ${a.model}`.localeCompare(`${b.brand} ${b.model}`);
+                    case 'price-asc':
+                        return Number(a.price) - Number(b.price);
+                    case 'price-desc':
+                        return Number(b.price) - Number(a.price);
+                    case 'stock-asc':
+                        return Number(a.stock) - Number(b.stock);
+                    case 'newest':
+                    default:
+                        return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+                }
+            });
+
+            document.getElementById('visibleCount').textContent = filtered.length;
+            document.getElementById('totalCountMeta').textContent = phones.length;
+
+            if (filtered.length === 0) {
+                desktopTableBody.innerHTML = '';
+                mobileCardsContainer.innerHTML = '';
+                paginationBar.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+
+                const hasFilters = query !== '' || brandVal !== 'All' || tierVal !== 'All' || condVal !== 'All' || statusVal !== 'All';
+                document.getElementById('resetFiltersEmptyBtn').classList.toggle('hidden', !hasFilters);
+                document.getElementById('emptyStateDesc').textContent = phones.length === 0
+                    ? 'Your cellphone store inventory is empty. Add a phone or click "Reset Demo" to load 168 sample models.'
+                    : 'No cellphones match your active search or filter criteria.';
+                lucide.createIcons();
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+            if (currentPage > totalPages) currentPage = totalPages;
+            const startIdx = (currentPage - 1) * PAGE_SIZE;
+            const pageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+            if (totalPages > 1) {
+                paginationBar.classList.remove('hidden');
+                document.getElementById('pageInfoText').textContent =
+                    `Page ${currentPage} of ${totalPages} (${startIdx + 1}–${Math.min(startIdx + PAGE_SIZE, filtered.length)} of ${filtered.length})`;
+                document.getElementById('prevPageBtn').disabled = currentPage <= 1;
+                document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
+            } else {
+                paginationBar.classList.add('hidden');
+            }
+
+            // Desktop Rows
+            desktopTableBody.innerHTML = pageItems.map(phone => `
+                <tr class="hover:bg-rose-50/40 transition-colors group">
+                    <td class="py-3.5 px-4 font-mono text-xs font-bold text-rose-600 whitespace-nowrap">
+                        ${escapeHtml(phone.id)}
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100/80 text-rose-700">${escapeHtml(phone.brand)}</span>
+                            <span class="font-semibold text-slate-900">${escapeHtml(phone.model)}</span>
+                            ${getTierPill(phone.tier)}
+                        </div>
+                        ${phone.notes ? `<div class="text-xs text-slate-400 truncate max-w-xs mt-0.5">${escapeHtml(phone.notes)}</div>` : ''}
+                    </td>
+                    <td class="py-3.5 px-4 whitespace-nowrap">
+                        <div class="text-xs font-semibold text-slate-700">${escapeHtml(phone.storage || 'Standard')}</div>
+                        <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            <span class="w-2 h-2 rounded-full bg-rose-300 inline-block"></span>
+                            ${escapeHtml(phone.color || 'Default')}
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 whitespace-nowrap">
+                        ${getConditionPill(phone.condition)}
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-bold text-slate-900 whitespace-nowrap">
+                        ${formatPHP(phone.price)}
+                    </td>
+                    <td class="py-3.5 px-4 whitespace-nowrap">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button type="button" onclick="adjustStock('${escapeHtml(phone.id)}', -1)" ${phone.stock <= 0 ? 'disabled' : ''} class="w-6 h-6 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 disabled:opacity-35 disabled:pointer-events-none flex items-center justify-center text-xs font-bold transition-colors" title="Decrease stock by 1">
+                                -
+                            </button>
+                            <span class="w-8 text-center font-bold text-slate-800">${phone.stock}</span>
+                            <button type="button" onclick="adjustStock('${escapeHtml(phone.id)}', 1)" class="w-6 h-6 rounded-lg border border-slate-200 bg-white hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 flex items-center justify-center text-xs font-bold transition-colors" title="Increase stock by 1">
+                                +
+                            </button>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 whitespace-nowrap">
+                        ${getStatusBadge(phone.status)}
+                    </td>
+                    <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center justify-end gap-1">
+                            <button type="button" onclick="openViewModal('${escapeHtml(phone.id)}')" class="p-2 rounded-xl text-slate-500 hover:text-pink-600 hover:bg-pink-50 transition-colors" title="View Specs">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" onclick="openPhoneModal('${escapeHtml(phone.id)}')" class="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-100/70 transition-colors" title="Edit Cellphone">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" onclick="promptDeletePhone('${escapeHtml(phone.id)}')" class="p-2 rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete Cellphone">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Mobile & Tablet Cards
+            mobileCardsContainer.innerHTML = pageItems.map(phone => `
+                <div class="p-4 md:rounded-2xl md:border md:border-rose-100/90 md:bg-white md:shadow-2xs space-y-3 hover:bg-rose-50/30 transition-colors">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="font-mono text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">${escapeHtml(phone.id)}</span>
+                                <span class="text-[11px] font-bold text-rose-700 bg-rose-100/70 px-2 py-0.5 rounded-md">${escapeHtml(phone.brand)}</span>
+                                ${getTierPill(phone.tier)}
+                            </div>
+                            <h3 class="font-display font-bold text-slate-900 text-base mt-1.5">${escapeHtml(phone.model)}</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                ${escapeHtml(phone.storage || 'Standard')} • ${escapeHtml(phone.color || 'Default')}
+                            </p>
+                            <div class="mt-1.5">
+                                ${getConditionPill(phone.condition)}
+                            </div>
+                        </div>
+                        ${getStatusBadge(phone.status)}
+                    </div>
+
+                    ${phone.notes ? `<p class="text-xs text-slate-500 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100 line-clamp-2">${escapeHtml(phone.notes)}</p>` : ''}
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Unit Price</div>
+                            <div class="font-display font-bold text-base text-rose-600">${formatPHP(phone.price)}</div>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200/70">
+                            <span class="text-[11px] text-slate-500 font-medium mr-1">Stock:</span>
+                            <button type="button" onclick="adjustStock('${escapeHtml(phone.id)}', -1)" ${phone.stock <= 0 ? 'disabled' : ''} class="w-6 h-6 rounded-lg bg-white border border-slate-200 font-bold text-xs disabled:opacity-40 active:bg-rose-100">-</button>
+                            <span class="w-6 text-center font-bold text-xs text-slate-900">${phone.stock}</span>
+                            <button type="button" onclick="adjustStock('${escapeHtml(phone.id)}', 1)" class="w-6 h-6 rounded-lg bg-white border border-slate-200 font-bold text-xs active:bg-rose-100">+</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-1.5 pt-1">
+                        <button type="button" onclick="openViewModal('${escapeHtml(phone.id)}')" class="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200/70 flex items-center gap-1">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> View
+                        </button>
+                        <button type="button" onclick="openPhoneModal('${escapeHtml(phone.id)}')" class="px-3 py-1.5 rounded-xl text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 flex items-center gap-1">
+                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
+                        </button>
+                        <button type="button" onclick="promptDeletePhone('${escapeHtml(phone.id)}')" class="px-3 py-1.5 rounded-xl text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 flex items-center gap-1">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function changePage(delta) {
+            currentPage = Math.max(1, currentPage + delta);
+            renderPhones();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /**
+         * Quick Stock Increment / Decrement
+         */
+        function adjustStock(id, delta) {
+            const index = phones.findIndex(p => p.id === id);
+            if (index === -1) return;
+
+            const currentStock = Number(phones[index].stock || 0);
+            const nextStock = Math.max(0, currentStock + delta);
+            if (nextStock === currentStock) return;
+
+            phones[index].stock = nextStock;
+            phones[index].updatedAt = new Date().toISOString();
+
+            const lockedStatuses = ['Reserved', 'In Transit / Restocking', 'Discontinued'];
+            if (!lockedStatuses.includes(phones[index].status)) {
+                if (nextStock === 0) {
+                    phones[index].status = 'Out of Stock';
+                } else if (nextStock <= 3) {
+                    phones[index].status = 'Low Stock';
+                } else {
+                    phones[index].status = 'Available';
+                }
+            }
+
+            savePhonesToStorage();
+            renderApp();
+            showToast(`${phones[index].brand} ${phones[index].model}: Stock is now ${nextStock}`, 'info');
+        }
+
+        /**
+         * View Full Cellphone Specifications Modal
+         */
+        function openViewModal(id) {
+            const phone = phones.find(p => p.id === id);
+            if (!phone) return;
+
+            document.getElementById('viewSkuBadge').textContent = phone.id;
+            document.getElementById('viewBrandPill').textContent = phone.brand;
+
+            const totalAssetValue = Number(phone.price) * Number(phone.stock);
+
+            document.getElementById('viewModalBody').innerHTML = `
+                <div>
+                    <h3 class="font-display text-xl font-bold text-slate-900">${escapeHtml(phone.model)}</h3>
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                        ${getTierPill(phone.tier)}
+                        ${getConditionPill(phone.condition)}
+                        ${getStatusBadge(phone.status)}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-rose-50/50 border border-rose-100/80 text-xs">
+                    <div>
+                        <span class="text-slate-400 block">Category / Tier</span>
+                        <span class="font-semibold text-slate-800 text-sm">${escapeHtml(phone.tier || 'Flagship')}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">RAM / Storage</span>
+                        <span class="font-semibold text-slate-800 text-sm">${escapeHtml(phone.storage || 'Standard')}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Colorway</span>
+                        <span class="font-semibold text-slate-800 text-sm">${escapeHtml(phone.color || 'Default')}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Unit Price</span>
+                        <span class="font-bold text-rose-600 text-sm">${formatPHP(phone.price)}</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-400 block">Stock & Total Asset Value</span>
+                        <span class="font-semibold text-slate-800 text-sm">${phone.stock} units (${formatPHP(totalAssetValue)})</span>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1">Specs & Notes</span>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        ${phone.notes ? escapeHtml(phone.notes) : 'No additional notes recorded for this unit.'}
+                    </p>
+                </div>
+
+                <div class="text-[11px] text-slate-400 text-right">
+                    Last updated: ${formatTimestamp(phone.updatedAt)}
+                </div>
+            `;
+
+            document.getElementById('viewEditTriggerBtn').onclick = () => {
+                closeViewModal();
+                openPhoneModal(phone.id);
+            };
+
+            document.getElementById('viewModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.add('hidden');
+        }
+
+        /**
+         * Open Create / Edit Cellphone Modal
+         */
+        function openPhoneModal(id = null) {
+            clearValidationErrors();
+            closeStorageMenu();
+            const modal = document.getElementById('phoneModal');
+            const titleEl = document.getElementById('modalTitle');
+            const subtitleEl = document.getElementById('modalSubtitle');
+            const saveBtn = document.getElementById('savePhoneBtn');
+
+            if (id) {
+                const phone = phones.find(p => p.id === id);
+                if (!phone) return;
+
+                document.getElementById('phoneId').value = phone.id;
+                document.getElementById('fieldBrand').value = BRAND_OPTIONS.includes(phone.brand) ? phone.brand : 'Other';
+                document.getElementById('fieldModel').value = phone.model;
+                document.getElementById('fieldTier').value = TIER_OPTIONS.includes(phone.tier) ? phone.tier : 'Flagship';
+                document.getElementById('fieldColor').value = phone.color || '';
+                document.getElementById('fieldCondition').value = CONDITION_OPTIONS.includes(phone.condition) ? phone.condition : 'Brand New (Sealed)';
+                document.getElementById('fieldPrice').value = phone.price;
+                document.getElementById('fieldStock').value = phone.stock;
+                document.getElementById('fieldStatus').value = STATUS_OPTIONS.includes(phone.status) ? phone.status : 'Available';
+                document.getElementById('fieldNotes').value = phone.notes || '';
+
+                const storageVal = phone.storage || '8GB / 256GB';
+                document.getElementById('fieldStorage').value = storageVal;
+                if (STORAGE_OPTIONS.includes(storageVal)) {
+                    isCustomStorageActive = false;
+                    document.getElementById('customStorageInputBox').classList.add('hidden');
+                    document.getElementById('storageSelectedLabel').textContent = storageVal;
+                    renderStorageOptionsGrid(storageVal);
+                } else {
+                    isCustomStorageActive = true;
+                    document.getElementById('customStorageInputBox').classList.remove('hidden');
+                    document.getElementById('customStorageInput').value = storageVal;
+                    document.getElementById('storageSelectedLabel').textContent = storageVal;
+                    renderStorageOptionsGrid('');
+                }
+
+                titleEl.textContent = `Edit Cellphone (${phone.id})`;
+                subtitleEl.textContent = 'Modify category, specs, pricing, or stock count.';
+                saveBtn.textContent = 'Update Cellphone';
+            } else {
+                document.getElementById('phoneForm').reset();
+                document.getElementById('phoneId').value = '';
+                document.getElementById('fieldBrand').value = 'Apple';
+                document.getElementById('fieldTier').value = 'Flagship';
+                document.getElementById('fieldCondition').value = 'Brand New (Sealed)';
+                document.getElementById('fieldStock').value = 5;
+                document.getElementById('fieldStatus').value = 'Available';
+
+                isCustomStorageActive = false;
+                document.getElementById('customStorageInputBox').classList.add('hidden');
+                document.getElementById('fieldStorage').value = '8GB / 256GB';
+                document.getElementById('storageSelectedLabel').textContent = '8GB / 256GB';
+                renderStorageOptionsGrid('8GB / 256GB');
+
+                titleEl.textContent = 'Add New Cellphone';
+                subtitleEl.textContent = 'Register a new handset into your store inventory.';
+                saveBtn.textContent = 'Add Cellphone';
+            }
+
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+            setTimeout(() => document.getElementById('fieldModel').focus(), 50);
+        }
+
+        function closePhoneModal() {
+            closeStorageMenu();
+            document.getElementById('phoneModal').classList.add('hidden');
+        }
+
+        /**
+         * Validate and Save Cellphone (Create or Update)
+         */
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            clearValidationErrors();
+
+            const id = document.getElementById('phoneId').value.trim();
+            const brand = document.getElementById('fieldBrand').value.trim();
+            const model = document.getElementById('fieldModel').value.trim();
+            const tier = document.getElementById('fieldTier').value;
+            const rawStorage = isCustomStorageActive
+                ? document.getElementById('customStorageInput').value.trim()
+                : document.getElementById('fieldStorage').value.trim();
+            const storage = rawStorage || 'Standard';
+            const color = document.getElementById('fieldColor').value.trim() || 'Default';
+            const condition = document.getElementById('fieldCondition').value;
+            const priceRaw = document.getElementById('fieldPrice').value;
+            const stockRaw = document.getElementById('fieldStock').value;
+            let status = document.getElementById('fieldStatus').value;
+            const notes = document.getElementById('fieldNotes').value.trim();
+
+            let isValid = true;
+
+            if (!brand) {
+                showFieldError('fieldBrand', 'errorBrand');
+                isValid = false;
+            }
+
+            if (model.length < 2) {
+                showFieldError('fieldModel', 'errorModel');
+                isValid = false;
+            }
+
+            const price = parseFloat(priceRaw);
+            if (isNaN(price) || price <= 0) {
+                showFieldError('fieldPrice', 'errorPrice');
+                isValid = false;
+            }
+
+            const stock = parseInt(stockRaw, 10);
+            if (isNaN(stock) || stock < 0) {
+                showFieldError('fieldStock', 'errorStock');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            const lockedStatuses = ['Reserved', 'In Transit / Restocking', 'Discontinued'];
+            if (stock === 0 && !lockedStatuses.includes(status)) {
+                status = 'Out of Stock';
+            }
+
+            const now = new Date().toISOString();
+
+            if (id) {
+                const idx = phones.findIndex(p => p.id === id);
+                if (idx !== -1) {
+                    phones[idx] = {
+                        ...phones[idx],
+                        brand,
+                        model,
+                        tier,
+                        storage,
+                        color,
+                        condition,
+                        price: Number(price.toFixed(2)),
+                        stock,
+                        status,
+                        notes,
+                        updatedAt: now
+                    };
+                    showToast(`Updated ${brand} ${model} (${id})`, 'success');
+                }
+            } else {
+                const newSku = `CP-${String(generateNextSkuNumber()).padStart(3, '0')}`;
+                const newPhone = {
+                    id: newSku,
+                    brand,
+                    model,
+                    tier,
+                    storage,
+                    color,
+                    condition,
+                    price: Number(price.toFixed(2)),
+                    stock,
+                    status,
+                    notes,
+                    updatedAt: now
+                };
+                phones.unshift(newPhone);
+                currentPage = 1;
+                showToast(`Added ${brand} ${model} (${newSku})`, 'success');
+            }
+
+            savePhonesToStorage();
+            closePhoneModal();
+            renderApp();
+        }
+
+        /**
+         * Delete & Reset Confirmations
+         */
+        function promptDeletePhone(id) {
+            const phone = phones.find(p => p.id === id);
+            if (!phone) return;
+
+            openConfirmModal({
+                title: 'Delete Cellphone?',
+                message: `Remove "${phone.brand} ${phone.model}" (${phone.id}) from your inventory? This cannot be undone.`,
+                confirmText: 'Delete',
+                type: 'danger',
+                onConfirm: () => {
+                    phones = phones.filter(p => p.id !== id);
+                    savePhonesToStorage();
+                    renderApp();
+                    showToast(`Deleted ${phone.brand} ${phone.model} (${phone.id})`, 'info');
+                }
+            });
+        }
+
+        function promptResetData() {
+            openConfirmModal({
+                title: 'Reset Demo Inventory?',
+                message: 'Restore all 168 pre-loaded cellphone models (8 per brand across all 21 brands) with their assigned categories?',
+                confirmText: 'Reset Demo',
+                type: 'warning',
+                onConfirm: () => {
+                    phones = JSON.parse(JSON.stringify(SAMPLE_PHONES));
+                    savePhonesToStorage();
+                    resetFilters();
+                    renderApp();
+                    showToast('Restored 168 sample cellphone models (8 per brand)', 'success');
+                }
+            });
+        }
+
+        function promptClearAll() {
+            if (phones.length === 0) {
+                showToast('Inventory is already empty', 'info');
+                return;
+            }
+
+            openConfirmModal({
+                title: 'Clear All Cellphones?',
+                message: `Are you sure you want to delete all ${phones.length} cellphone records?`,
+                confirmText: 'Clear All',
+                type: 'danger',
+                onConfirm: () => {
+                    phones = [];
+                    currentPage = 1;
+                    savePhonesToStorage();
+                    renderApp();
+                    showToast('All cellphone records cleared', 'info');
+                }
+            });
+        }
+
+        function openConfirmModal({ title, message, confirmText, type = 'danger', onConfirm }) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+
+            const actionBtn = document.getElementById('confirmActionBtn');
+            const iconWrapper = document.getElementById('confirmIconWrapper');
+
+            actionBtn.textContent = confirmText;
+
+            if (type === 'warning') {
+                actionBtn.className = 'flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 shadow-md shadow-amber-200 transition-colors';
+                iconWrapper.className = 'w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4';
+            } else {
+                actionBtn.className = 'flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-200 transition-colors';
+                iconWrapper.className = 'w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4';
+            }
+
+            pendingConfirmCallback = onConfirm;
+            actionBtn.onclick = () => {
+                if (typeof pendingConfirmCallback === 'function') {
+                    pendingConfirmCallback();
+                }
+                closeConfirmModal();
+            };
+
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            pendingConfirmCallback = null;
+        }
+
+        /**
+         * Export CSV / JSON
+         */
+        function exportData(format) {
+            document.getElementById('exportMenu').classList.add('hidden');
+
+            if (phones.length === 0) {
+                showToast('No cellphones to export', 'error');
+                return;
+            }
+
+            const dateTag = new Date().toISOString().slice(0, 10);
+
+            if (format === 'json') {
+                triggerDownload(JSON.stringify(phones, null, 2), `bloomphone-inventory-${dateTag}.json`, 'application/json');
+                showToast(`Exported ${phones.length} phones as JSON`, 'success');
+            } else if (format === 'csv') {
+                const headers = ['SKU', 'Brand', 'Model', 'Category / Tier', 'Storage', 'Color', 'Condition', 'Price (PHP)', 'Stock', 'Status', 'Notes', 'Updated At'];
+                const rows = [
+                    headers.join(','),
+                    ...phones.map(p => [
+                        escapeCsv(p.id),
+                        escapeCsv(p.brand),
+                        escapeCsv(p.model),
+                        escapeCsv(p.tier || 'Flagship'),
+                        escapeCsv(p.storage),
+                        escapeCsv(p.color),
+                        escapeCsv(p.condition),
+                        Number(p.price).toFixed(2),
+                        p.stock,
+                        escapeCsv(p.status),
+                        escapeCsv(p.notes || ''),
+                        escapeCsv(p.updatedAt || '')
+                    ].join(','))
+                ];
+                triggerDownload(rows.join('\n'), `bloomphone-inventory-${dateTag}.csv`, 'text/csv;charset=utf-8;');
+                showToast(`Exported ${phones.length} phones as CSV`, 'success');
+            }
+        }
+
+        function triggerDownload(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * Helpers & Formatting
+         */
+        function clearSearch() {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            currentPage = 1;
+            renderPhones();
+        }
+
+        function resetFilters() {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            brandFilter.value = 'All';
+            tierFilter.value = 'All';
+            conditionFilter.value = 'All';
+            statusFilter.value = 'All';
+            sortSelect.value = 'newest';
+            currentPage = 1;
+            renderPhones();
+        }
+
+        function showFieldError(inputId, errorId) {
+            document.getElementById(inputId).classList.add('border-rose-500', 'bg-rose-50/40');
+            document.getElementById(errorId).classList.remove('hidden');
+        }
+
+        function clearValidationErrors() {
+            ['fieldBrand', 'fieldModel', 'fieldPrice', 'fieldStock'].forEach(id => {
+                document.getElementById(id).classList.remove('border-rose-500', 'bg-rose-50/40');
+            });
+            ['errorBrand', 'errorModel', 'errorPrice', 'errorStock'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+        }
+
+        function generateNextSkuNumber() {
+            const max = phones.reduce((acc, p) => {
+                const match = p.id.match(/(\d+)$/);
+                const num = match ? parseInt(match[1], 10) : 0;
+                return num > acc ? num : acc;
+            }, 0);
+            return max + 1;
+        }
+
+        function getTierPill(tier) {
+            const label = tier || 'Flagship';
+            const map = {
+                'Flagship': 'bg-amber-50 text-amber-700 border-amber-200/80',
+                'Mid-Range': 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
+                'Budget / Entry-Level': 'bg-slate-100 text-slate-700 border-slate-200/80',
+                'Gaming Phone': 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200/80',
+                'Foldable / Flip': 'bg-purple-50 text-purple-700 border-purple-200/80',
+                'Camera-Centric': 'bg-cyan-50 text-cyan-700 border-cyan-200/80',
+                'Rugged / Outdoor': 'bg-orange-50 text-orange-700 border-orange-200/80'
+            };
+            const cls = map[label] || 'bg-slate-100 text-slate-700 border-slate-200';
+            return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border ${cls}">${escapeHtml(label)}</span>`;
+        }
+
+        function getConditionPill(condition) {
+            if (condition.startsWith('Brand New')) {
+                return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200/70">${escapeHtml(condition)}</span>`;
+            }
+            if (condition.startsWith('Second Hand')) {
+                return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/70">${escapeHtml(condition)}</span>`;
+            }
+            if (condition.startsWith('Refurbished')) {
+                return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-teal-50 text-teal-700 border border-teal-200/70">${escapeHtml(condition)}</span>`;
+            }
+            return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/70">${escapeHtml(condition)}</span>`;
+        }
+
+        function getStatusBadge(status) {
+            switch (status) {
+                case 'Available':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Available
+                    </span>`;
+                case 'Low Stock':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Low Stock
+                    </span>`;
+                case 'Out of Stock':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Out of Stock
+                    </span>`;
+                case 'Reserved':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200/80">
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>Reserved
+                    </span>`;
+                case 'In Transit / Restocking':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Restocking
+                    </span>`;
+                case 'Discontinued':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/80">
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Discontinued
+                    </span>`;
+                default:
+                    return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">${escapeHtml(status)}</span>`;
+            }
+        }
+
+        function formatPHP(amount) {
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }).format(amount || 0);
+        }
+
+        function formatTimestamp(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleString('en-PH', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function escapeCsv(val) {
+            const s = String(val ?? '');
+            if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                return `"${s.replace(/"/g, '""')}"`;
+            }
+            return s;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            const styles = {
+                success: 'bg-slate-900 text-white border-rose-500/40',
+                error: 'bg-rose-600 text-white border-rose-400',
+                info: 'bg-slate-800 text-white border-slate-700'
+            };
+
+            const icons = {
+                success: 'check-circle',
+                error: 'alert-circle',
+                info: 'info'
+            };
+
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border text-xs sm:text-sm font-medium transform transition-all duration-300 translate-y-2 opacity-0 ${styles[type] || styles.success}`;
+            toast.innerHTML = `
+                <i data-lucide="${icons[type] || 'check-circle'}" class="w-4 h-4 text-rose-400 shrink-0"></i>
+                <span class="flex-1">${escapeHtml(message)}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
